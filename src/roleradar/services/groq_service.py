@@ -224,9 +224,11 @@ Return valid JSON only.
         # Prepare summary data
         summary_items = []
         for result in results[:max_results]:
-            summary_items.append(f"- {result.get('company_name', 'Unknown')}: "
-                               f"{result.get('opportunity_count', 0)} opportunities, "
-                               f"score: {result.get('score', 0):.1f}")
+            # Support both formats: 'name' or 'company_name', 'active_opportunities' or 'opportunity_count'
+            company_name = result.get('company_name') or result.get('name', 'Unknown')
+            opp_count = result.get('opportunity_count') or result.get('active_opportunities', 0)
+            score = result.get('score', 0)
+            summary_items.append(f"- {company_name}: {opp_count} opportunities, score: {score:.1f}")
         
         summary_text = "\n".join(summary_items)
         
