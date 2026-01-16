@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoleRadar - Security & Compliance Opportunity Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 RoleRadar</h1>
+            <p class="subtitle">Security, Compliance & GRC Opportunity Tracker</p>
+        </header>
+
+        <div id="summary-section" class="section">
+            <h2>Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-companies">-</div>
+                    <div class="stat-label">Companies Tracked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-opportunities">-</div>
+                    <div class="stat-label">Active Opportunities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-signals">-</div>
+                    <div class="stat-label">Hiring Signals</div>
+                </div>
+            </div>
+            <div class="summary-text" id="summary-text">
+                Loading summary...
+            </div>
+            <div class="last-updated">
+                Last updated: <span id="last-updated">-</span>
+            </div>
+        </div>
+
+        <div id="companies-section" class="section">
+            <h2>🔥 Top Companies</h2>
+            <div class="table-container">
+                <table id="companies-table">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Score</th>
+                            <th>Active Roles</th>
+                            <th>Signals</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companies-tbody">
+                        <tr>
+                            <td colspan="5">Loading companies...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="opportunities-section" class="section">
+            <h2>💼 Recent Opportunities</h2>
+            <div class="table-container">
+                <table id="opportunities-table">
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Company</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Discovered</th>
+                            <th>Link</th>
+                        </tr>
+                    </thead>
+                    <tbody id="opportunities-tbody">
+                        <tr>
+                            <td colspan="6">Loading opportunities...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
