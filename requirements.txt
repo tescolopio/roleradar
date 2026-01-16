@@ -1,0 +1,8 @@
+tavily-python==0.3.0
+groq==0.4.2
+sqlalchemy==2.0.25
+flask==3.0.0
+python-dotenv==1.0.0
+schedule==1.2.0
+requests==2.31.0
+networkx==3.2.1
