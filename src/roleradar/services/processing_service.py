@@ -1,6 +1,6 @@
 """Processing service for analyzing search results and updating database."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any
 from sqlalchemy import desc
 from ..models import Company, Opportunity, HiringSignal, SearchResult
@@ -80,7 +80,7 @@ class ProcessingService:
                         url=result.url,
                         location=entities.get("location"),
                         is_active=True,
-                        discovered_date=datetime.utcnow()
+                        discovered_date=datetime.now(timezone.utc)
                     )
                     session.add(opportunity)
                     session.flush()
@@ -110,7 +110,7 @@ class ProcessingService:
                         description=signals.get("description"),
                         source_url=result.url,
                         confidence=signals.get("confidence", 0.0),
-                        detected_date=datetime.utcnow()
+                        detected_date=datetime.now(timezone.utc)
                     )
                     session.add(signal)
                     session.flush()
@@ -142,7 +142,7 @@ class ProcessingService:
         recent_signals = session.query(HiringSignal).filter_by(
             company_id=company_id
         ).filter(
-            HiringSignal.detected_date > datetime.utcnow() - timedelta(days=90)
+            HiringSignal.detected_date > datetime.now(timezone.utc) - timedelta(days=90)
         ).all()
         
         # Prepare data for scoring
@@ -162,7 +162,7 @@ class ProcessingService:
         
         # Calculate score
         company.score = self.groq.score_company(company_data)
-        company.last_updated = datetime.utcnow()
+        company.last_updated = datetime.now(timezone.utc)
     
     def get_top_companies(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get top companies by score."""
@@ -214,7 +214,7 @@ class ProcessingService:
             total_companies = session.query(Company).count()
             total_opportunities = session.query(Opportunity).filter_by(is_active=True).count()
             total_signals = session.query(HiringSignal).filter(
-                HiringSignal.detected_date > datetime.utcnow() - timedelta(days=90)
+                HiringSignal.detected_date > datetime.now(timezone.utc) - timedelta(days=90)
             ).count()
             
             top_companies = self.get_top_companies(limit=10)
@@ -230,5 +230,5 @@ class ProcessingService:
                 "top_companies": top_companies,
                 "recent_opportunities": recent_opportunities,
                 "summary": summary_text,
-                "last_updated": datetime.utcnow().isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat()
             }

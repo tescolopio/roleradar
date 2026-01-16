@@ -1,7 +1,7 @@
 """Tavily search service for discovering opportunities."""
 
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from tavily import TavilyClient
 from ..config import config
 from ..models import SearchResult
@@ -92,7 +92,7 @@ class TavilySearchService:
                         url=result.get("url", "")[:512],
                         score=result.get("score", 0.0),
                         published_date=result.get("published_date", ""),
-                        retrieved_date=datetime.utcnow(),
+                        retrieved_date=datetime.now(timezone.utc),
                         processed=False
                     )
                     session.add(search_result)

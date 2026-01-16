@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Demo script to populate RoleRadar with sample data."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.roleradar.database import db_service
 from src.roleradar.models import Company, Opportunity, HiringSignal
 from src.roleradar.models.graph import GraphDatabase
@@ -180,8 +180,8 @@ def populate_demo_data():
                 location=opp_data["location"],
                 url=opp_data["url"],
                 is_active=True,
-                posted_date=datetime.utcnow() - timedelta(days=5),
-                discovered_date=datetime.utcnow() - timedelta(days=2)
+                posted_date=datetime.now(timezone.utc) - timedelta(days=5),
+                discovered_date=datetime.now(timezone.utc) - timedelta(days=2)
             )
             session.add(opportunity)
             session.flush()
@@ -197,7 +197,7 @@ def populate_demo_data():
                 description=signal_data["description"],
                 confidence=signal_data["confidence"],
                 source_url="https://example.com/news",
-                detected_date=datetime.utcnow() - timedelta(days=3)
+                detected_date=datetime.now(timezone.utc) - timedelta(days=3)
             )
             session.add(signal)
             session.flush()

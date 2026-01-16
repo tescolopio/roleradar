@@ -1,11 +1,16 @@
 """Database models for RoleRadar."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
 Base = declarative_base()
+
+
+def utc_now():
+    """Get current UTC time."""
+    return datetime.now(timezone.utc)
 
 
 class Company(Base):
@@ -21,8 +26,8 @@ class Company(Base):
     location = Column(String(255))
     description = Column(Text)
     score = Column(Float, default=0.0)
-    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    last_updated = Column(DateTime, default=utc_now, onupdate=utc_now)
+    created_at = Column(DateTime, default=utc_now)
     
     # Relationships
     opportunities = relationship("Opportunity", back_populates="company")
@@ -46,8 +51,8 @@ class Opportunity(Base):
     location = Column(String(255))
     is_active = Column(Boolean, default=True)
     posted_date = Column(DateTime)
-    discovered_date = Column(DateTime, default=datetime.utcnow)
-    last_seen = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    discovered_date = Column(DateTime, default=utc_now)
+    last_seen = Column(DateTime, default=utc_now, onupdate=utc_now)
     
     # Relationships
     company = relationship("Company", back_populates="opportunities")
@@ -67,7 +72,7 @@ class HiringSignal(Base):
     description = Column(Text)
     source_url = Column(String(512))
     confidence = Column(Float, default=0.0)
-    detected_date = Column(DateTime, default=datetime.utcnow)
+    detected_date = Column(DateTime, default=utc_now)
     
     # Relationships
     company = relationship("Company", back_populates="signals")
@@ -88,7 +93,7 @@ class SearchResult(Base):
     url = Column(String(512))
     score = Column(Float)
     published_date = Column(String(100))
-    retrieved_date = Column(DateTime, default=datetime.utcnow)
+    retrieved_date = Column(DateTime, default=utc_now)
     processed = Column(Boolean, default=False)
     
     def __repr__(self):
