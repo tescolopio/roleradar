@@ -15,8 +15,10 @@ class TavilySearchService:
         """Initialize Tavily search service."""
         self.api_key = api_key or config.TAVILY_API_KEY
         if not self.api_key:
-            raise ValueError("Tavily API key is required")
-        self.client = TavilyClient(api_key=self.api_key)
+            print("Warning: Tavily API key not configured. Search functionality will be limited.")
+            self.client = None
+        else:
+            self.client = TavilyClient(api_key=self.api_key)
     
     def search(self, query: str, max_results: int = 10) -> List[Dict[str, Any]]:
         """
@@ -29,6 +31,10 @@ class TavilySearchService:
         Returns:
             List of search results
         """
+        if not self.client:
+            print("Error: Tavily client not initialized. Please configure TAVILY_API_KEY.")
+            return []
+        
         try:
             response = self.client.search(
                 query=query,

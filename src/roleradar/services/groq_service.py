@@ -13,8 +13,10 @@ class GroqAnalysisService:
         """Initialize Groq analysis service."""
         self.api_key = api_key or config.GROQ_API_KEY
         if not self.api_key:
-            raise ValueError("Groq API key is required")
-        self.client = Groq(api_key=self.api_key)
+            print("Warning: Groq API key not configured. Analysis functionality will be limited.")
+            self.client = None
+        else:
+            self.client = Groq(api_key=self.api_key)
         self.model = "llama-3.1-70b-versatile"
     
     def extract_entities(self, text: str) -> Dict[str, Any]:
@@ -27,6 +29,16 @@ class GroqAnalysisService:
         Returns:
             Dictionary with extracted entities
         """
+        if not self.client:
+            print("Warning: Groq client not initialized. Returning empty entities.")
+            return {
+                "company_name": None,
+                "job_title": None,
+                "role_type": None,
+                "location": None,
+                "keywords": []
+            }
+        
         prompt = f"""Analyze the following text and extract structured information about job opportunities in security, compliance, or GRC roles.
 
 Extract:
@@ -90,6 +102,14 @@ Return ONLY a valid JSON object with these fields. If a field is not found, use 
         Returns:
             Dictionary with hiring signals
         """
+        if not self.client:
+            return {
+                "has_signal": False,
+                "signal_type": "none",
+                "confidence": 0.0,
+                "description": ""
+            }
+        
         prompt = f"""Analyze the following text about {company_name} and identify hiring signals that suggest they may need security or compliance leadership.
 
 Look for signals like:
@@ -197,6 +217,9 @@ Return valid JSON only.
         """
         if not results:
             return "No results to summarize."
+        
+        if not self.client:
+            return f"Found {len(results)} companies with opportunities. Configure Groq API key for detailed summaries."
         
         # Prepare summary data
         summary_items = []
