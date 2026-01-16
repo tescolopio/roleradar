@@ -193,9 +193,7 @@ Return valid JSON only.
             score += avg_confidence * 100 * weights["hiring_signals"]
         
         # Company growth indicators (weight: 0.2)
-        if company_data.get("has_funding", False):
-            score += 50 * weights["company_growth"]
-        if company_data.get("has_expansion", False):
+        if company_data.get("has_funding", False) or company_data.get("has_expansion", False):
             score += 50 * weights["company_growth"]
         
         # Recent activity (weight: 0.1)

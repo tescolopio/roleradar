@@ -65,10 +65,11 @@ class ProcessingService:
             # Check if this is a job posting
             job_title = entities.get("job_title")
             if job_title:
-                # Check if opportunity already exists
+                # Check if an active opportunity with this title already exists
                 existing_opp = session.query(Opportunity).filter_by(
                     company_id=company.id,
-                    title=job_title
+                    title=job_title,
+                    is_active=True
                 ).first()
                 
                 if not existing_opp:
@@ -97,10 +98,11 @@ class ProcessingService:
             signals = self.groq.detect_hiring_signals(text, company_name)
             
             if signals.get("has_signal") and signals.get("confidence", 0) > 0.5:
-                # Check if signal already exists
+                # Check if signal already exists for this company, type, and source URL
                 existing_signal = session.query(HiringSignal).filter_by(
                     company_id=company.id,
-                    signal_type=signals.get("signal_type")
+                    signal_type=signals.get("signal_type"),
+                    source_url=result.url
                 ).first()
                 
                 if not existing_signal:
