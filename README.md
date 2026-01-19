@@ -8,6 +8,13 @@ An intelligent system that automates daily searches for security, compliance, an
   - **Configurable Roles**: Search for any job title or role (not just security)
   - **Flexible Scheduling**: Run searches multiple times per day at custom times
   - **Community Ready**: Share and reuse configurations with the community
+- **⚙️ Admin Management GUI**: Web-based interface for:
+  - Adding/removing search roles
+  - Configuring automated search schedule
+  - Customizing AI extraction prompts
+  - Adjusting scoring algorithm weights
+  - Triggering manual searches and processing
+  - Viewing system status and configuration
 - **🤖 AI-Powered Analysis**: Uses Groq LLM to:
   - Extract entities (companies, job titles, locations)
   - Detect hiring signals (funding, expansion, breaches, compliance news)
@@ -21,6 +28,7 @@ An intelligent system that automates daily searches for security, compliance, an
   - Active job opportunities
   - Hiring signals and trends
   - Executive summaries
+  - Admin panel link for configuration
 - **🔐 Secure Configuration**: 
   - AES-256 encrypted credential storage
   - Master password protection
@@ -100,6 +108,29 @@ python roleradar.py dashboard
 
 Then open your browser to `http://localhost:5000`
 
+**Dashboard Features:**
+- View top companies and opportunities
+- Click **⚙️ Admin Panel** for configuration
+
+### Admin Management Panel
+
+Configure RoleRadar without code:
+
+```bash
+# Navigate to Admin Panel
+http://localhost:5000/admin
+```
+
+**In the Admin Panel, you can:**
+- ✅ Add/remove search roles
+- ✅ Set automated search schedule
+- ✅ Customize AI extraction prompts
+- ✅ Adjust scoring weights
+- ✅ Trigger manual searches
+- ✅ Monitor system status
+
+See [ADMIN_GUI_QUICK_START.md](ADMIN_GUI_QUICK_START.md) for detailed guide.
+
 ### Automated Daily Searches
 
 Run the scheduler for automated daily searches:
@@ -114,7 +145,19 @@ This will run searches at your configured times (default: 8 AM, 12 PM, 3 PM EST)
 
 RoleRadar supports **secure encrypted configuration** for protecting your credentials:
 
-#### Secure Configuration (Recommended)
+#### Web-Based Configuration (Recommended)
+
+1. Start dashboard: `python roleradar.py dashboard`
+2. Open admin panel: `http://localhost:5000/admin`
+3. Configure using intuitive web interface:
+   - Add search roles
+   - Set schedule times
+   - Customize prompts
+   - Adjust weights
+
+See [ADMIN_GUI_GUIDE.md](ADMIN_GUI_GUIDE.md) for comprehensive documentation.
+
+#### Secure Configuration (Command Line)
 
 ```bash
 # Initialize and set up credentials securely
