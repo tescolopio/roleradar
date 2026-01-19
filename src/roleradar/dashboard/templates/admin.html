@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoleRadar - Admin Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🎯 RoleRadar Admin</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#search-control" class="nav-item active" data-section="search-control">
+                    🔍 Search Control
+                </a>
+                <a href="#configuration" class="nav-item" data-section="configuration">
+                    ⚙️ Configuration
+                </a>
+                <a href="#schedule" class="nav-item" data-section="schedule">
+                    📅 Schedule
+                </a>
+                <a href="#prompts" class="nav-item" data-section="prompts">
+                    💬 Prompts
+                </a>
+                <a href="#weights" class="nav-item" data-section="weights">
+                    ⚖️ Weights
+                </a>
+                <a href="#system" class="nav-item" data-section="system">
+                    🔧 System
+                </a>
+                <a href="/" class="nav-item nav-exit">
+                    ← Back to Dashboard
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- Header -->
+            <header class="admin-header">
+                <h1 id="section-title">Search Control</h1>
+                <div class="status-indicator">
+                    <span id="status-text">Initializing...</span>
+                    <div id="status-dot" class="status-dot loading"></div>
+                </div>
+            </header>
+
+            <!-- Search Control Section -->
+            <section id="search-control" class="admin-section active">
+                <div class="section-content">
+                    <h2>🔍 Manual Search & Processing</h2>
+                    
+                    <div class="control-group">
+                        <label>Run Search</label>
+                        <p class="description">Execute a search immediately across all configured roles.</p>
+                        <button id="btn-run-search" class="btn btn-primary">
+                            ▶️ Start Search Now
+                        </button>
+                        <div id="search-status" class="status-box"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Custom Query Search</label>
+                        <p class="description">Search for a specific query or role.</p>
+                        <div class="input-group">
+                            <input type="text" id="custom-query" placeholder="e.g., CISO, Security Lead, Compliance Officer">
+                            <button id="btn-custom-search" class="btn btn-secondary">🔎 Search</button>
+                        </div>
+                        <div id="custom-search-status" class="status-box"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Process Results</label>
+                        <p class="description">Process unprocessed search results through AI extraction and analysis.</p>
+                        <button id="btn-process" class="btn btn-primary">
+                            ⚙️ Process Results
+                        </button>
+                        <div id="process-status" class="status-box"></div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>ℹ️ Search Status</strong>
+                        <ul>
+                            <li>Active Roles: <span id="status-active-roles">-</span></li>
+                            <li>Last Search: <span id="status-last-search">Never</span></li>
+                            <li>Scheduled Times: <span id="status-schedule">-</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration Section -->
+            <section id="configuration" class="admin-section">
+                <div class="section-content">
+                    <h2>⚙️ Search Roles Configuration</h2>
+                    
+                    <div class="control-group">
+                        <label>Active Search Roles</label>
+                        <p class="description">Modify the roles that are searched for in job postings. Each role will be used as a search query.</p>
+                        
+                        <div id="roles-container" class="roles-container">
+                            <div class="roles-list" id="roles-list"></div>
+                            <div class="add-role-group">
+                                <input type="text" id="new-role-input" placeholder="Enter new role (e.g., CISO)">
+                                <button id="btn-add-role" class="btn btn-secondary">+ Add Role</button>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="btn-save-roles" class="btn btn-primary">💾 Save Roles</button>
+                            <button id="btn-reset-roles" class="btn btn-secondary">↻ Reset</button>
+                        </div>
+                        <div id="roles-status" class="status-box"></div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>💡 Tips</strong>
+                        <ul>
+                            <li>Add specific roles like "CISO", "Security Director", "Compliance Manager"</li>
+                            <li>Use descriptive titles for better search results</li>
+                            <li>Changes take effect immediately for manual searches</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Schedule Section -->
+            <section id="schedule" class="admin-section">
+                <div class="section-content">
+                    <h2>📅 Automated Search Schedule</h2>
+                    
+                    <div class="control-group">
+                        <label>Schedule Times (24-hour format)</label>
+                        <p class="description">Set the times when automated searches should run. Use HH:MM format (e.g., 08:00, 14:30).</p>
+                        
+                        <div id="schedule-container" class="schedule-container">
+                            <div class="schedule-list" id="schedule-list"></div>
+                            <div class="add-schedule-group">
+                                <input type="time" id="new-time-input">
+                                <button id="btn-add-time" class="btn btn-secondary">+ Add Time</button>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button id="btn-save-schedule" class="btn btn-primary">💾 Save Schedule</button>
+                            <button id="btn-reset-schedule" class="btn btn-secondary">↻ Reset</button>
+                        </div>
+                        <div id="schedule-status" class="status-box"></div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>💡 Recommendations</strong>
+                        <ul>
+                            <li>Recommended times: 08:00, 12:00, 15:00, 18:00</li>
+                            <li>Space searches 3-4 hours apart for best coverage</li>
+                            <li>Consider timezone: <span id="timezone-display">America/New_York</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Prompts Section -->
+            <section id="prompts" class="admin-section">
+                <div class="section-content">
+                    <h2>💬 Data Extraction Prompts</h2>
+                    
+                    <div class="control-group">
+                        <label>Entity Extraction Prompt</label>
+                        <p class="description">Prompt used to extract companies, job titles, and locations from search results.</p>
+                        <textarea id="prompt-entity-extraction" class="prompt-editor" rows="6"></textarea>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Hiring Signals Prompt</label>
+                        <p class="description">Prompt used to detect hiring signals and growth indicators.</p>
+                        <textarea id="prompt-hiring-signals" class="prompt-editor" rows="6"></textarea>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Growth Detection Prompt</label>
+                        <p class="description">Prompt used to identify company growth patterns and expansion signals.</p>
+                        <textarea id="prompt-growth-detection" class="prompt-editor" rows="6"></textarea>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-save-prompts" class="btn btn-primary">💾 Save Prompts</button>
+                        <button id="btn-reset-prompts" class="btn btn-secondary">↻ Reset to Default</button>
+                    </div>
+                    <div id="prompts-status" class="status-box"></div>
+
+                    <div class="info-box">
+                        <strong>💡 Tips</strong>
+                        <ul>
+                            <li>Be specific about what information to extract</li>
+                            <li>Include examples in the prompt for better results</li>
+                            <li>Changes apply to new processing jobs</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weights Section -->
+            <section id="weights" class="admin-section">
+                <div class="section-content">
+                    <h2>⚖️ Scoring Weights</h2>
+                    
+                    <div class="control-group">
+                        <label>Adjust Scoring Weights</label>
+                        <p class="description">Control how different factors contribute to the final opportunity score. Values must sum to 1.0 (100%).</p>
+                        
+                        <div class="weights-container">
+                            <div class="weight-item">
+                                <label class="weight-label">Explicit Job Posting</label>
+                                <div class="weight-input-group">
+                                    <input type="range" id="weight-explicit" class="weight-slider" min="0" max="100" step="5">
+                                    <span id="weight-explicit-value" class="weight-value">0.0</span>
+                                </div>
+                            </div>
+
+                            <div class="weight-item">
+                                <label class="weight-label">Hiring Signals</label>
+                                <div class="weight-input-group">
+                                    <input type="range" id="weight-signals" class="weight-slider" min="0" max="100" step="5">
+                                    <span id="weight-signals-value" class="weight-value">0.0</span>
+                                </div>
+                            </div>
+
+                            <div class="weight-item">
+                                <label class="weight-label">Company Growth</label>
+                                <div class="weight-input-group">
+                                    <input type="range" id="weight-growth" class="weight-slider" min="0" max="100" step="5">
+                                    <span id="weight-growth-value" class="weight-value">0.0</span>
+                                </div>
+                            </div>
+
+                            <div class="weight-item">
+                                <label class="weight-label">Recent Activity</label>
+                                <div class="weight-input-group">
+                                    <input type="range" id="weight-activity" class="weight-slider" min="0" max="100" step="5">
+                                    <span id="weight-activity-value" class="weight-value">0.0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="weight-total">
+                            <strong>Total Weight:</strong>
+                            <span id="weight-total" class="weight-total-value">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-save-weights" class="btn btn-primary">💾 Save Weights</button>
+                        <button id="btn-reset-weights" class="btn btn-secondary">↻ Reset to Default</button>
+                    </div>
+                    <div id="weights-status" class="status-box"></div>
+
+                    <div class="info-box">
+                        <strong>💡 Default Weights</strong>
+                        <ul>
+                            <li>Explicit Job Posting: 40%</li>
+                            <li>Hiring Signals: 30%</li>
+                            <li>Company Growth: 20%</li>
+                            <li>Recent Activity: 10%</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Section -->
+            <section id="system" class="admin-section">
+                <div class="section-content">
+                    <h2>🔧 System Status</h2>
+                    
+                    <div class="status-grid">
+                        <div class="status-card">
+                            <div class="status-card-label">Database</div>
+                            <div id="status-db" class="status-card-value">-</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-card-label">Configuration Mode</div>
+                            <div id="status-config-mode" class="status-card-value">-</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-card-label">Active Roles</div>
+                            <div id="status-roles-count" class="status-card-value">-</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-card-label">Scheduled Times</div>
+                            <div id="status-schedule-count" class="status-card-value">-</div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>ℹ️ System Information</strong>
+                        <ul>
+                            <li>Version: 2.0.0</li>
+                            <li>Features: Search, Processing, Admin Management</li>
+                            <li><a href="/api/system/health">Health Check</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
