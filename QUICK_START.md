@@ -1,14 +1,42 @@
 # RoleRadar - Quick Start Guide
 
-## Prerequisites
+## ⚡ Fastest Way to Get Started (No CLI Required!)
 
-1. **Install Dependencies**
+### 1. Install Dependencies
 ```bash
 cd /mnt/d/roleradar
 pip install -r requirements.txt
 ```
 
-2. **Set Up Secure Configuration** (Recommended)
+### 2. Start Dashboard
+```bash
+python roleradar.py dashboard
+```
+
+### 3. Open Admin Panel
+```
+http://localhost:5000/admin
+```
+
+### 4. Configure Everything Through GUI
+- **Credentials Tab:** Enter Tavily & Groq API keys
+- **Configuration Tab:** Set search roles
+- **Schedule Tab:** Set up automated searches
+- That's it!
+
+See [CREDENTIALS_SETUP_GUIDE.md](CREDENTIALS_SETUP_GUIDE.md) for detailed walkthrough.
+
+---
+
+## Prerequisites & Options
+
+### Option A: GUI Setup (Recommended - No CLI Knowledge Needed)
+1. Follow the "Fastest Way" section above
+2. All configuration through web interface
+3. No command line needed
+
+### Option B: CLI Setup (For Advanced Users)
+
 ```bash
 python secure_config_manager.py init
 # You'll be prompted for:
@@ -39,23 +67,18 @@ Then open your browser to: **http://localhost:5000**
 - ✅ Automatically finds available port if 5000 is in use
 - ✅ Full functionality with local database
 
-### Option 2: One-Time Search + Dashboard
+### Option 2: Run Search & View Results (Through Web Interface)
 
 ```bash
-# Initialize database (first time only)
-python roleradar.py init
-
-# Run one search
-python roleradar.py search
-
-# Process results with AI analysis
-python roleradar.py process
-
-# Launch dashboard
+# Start the web dashboard
 python roleradar.py dashboard
 ```
 
-Then open: **http://localhost:5000**
+Then:
+1. Open: **http://localhost:5000/admin**
+2. Go to **Search Control** tab
+3. Click **Search Now** to start a search
+4. Refresh dashboard to see results
 
 ### Option 3: Automated Scheduler (Production)
 
@@ -65,114 +88,118 @@ python scheduler.py
 ```
 
 This will:
-- Run searches at configured times (default: 8 AM, 12 PM, 3 PM EST)
+- Run searches at configured times (configured in admin panel)
 - Automatically process results
 - Store in database
+- Dashboard updates automatically
 - You can still access dashboard at **http://localhost:5000**
 
-## Accessing the Application
+## Web Interface Walkthrough
 
-### Web Dashboard
-- **URL:** http://localhost:5000
-- **Features:**
-  - View top companies by score
-  - Active job opportunities
-  - Hiring signals and trends
-  - Executive summaries
-  - Link to Admin Panel (⚙️ button in top right)
+### Main Dashboard (http://localhost:5000)
+**What you'll see:**
+- Top companies by opportunity score
+- Recent hiring signals  
+- Job opportunities by role
+- Executive summary insights
+- Admin Panel link (⚙️ button)
 
-### Admin Management Panel
-- **URL:** http://localhost:5000/admin
-- **Features:**
-  - Configure search roles (add/remove)
-  - Set automated search schedule
-  - Customize AI extraction prompts
-  - Adjust scoring weights
-  - Trigger manual searches
-  - Process results on demand
-  - View system status
+### Credentials Tab (First Step!)
+1. Click **Admin Panel** (⚙️) button
+2. Select **Credentials** tab (default)
+3. Enter:
+   - **Tavily API Key:** Get from https://tavily.com
+   - **Groq API Key:** Get from https://console.groq.com
+   - (Optional) Database URL for PostgreSQL/MySQL
+4. Click **Test Credentials**
+5. Click **Save**
 
-**Quick Admin Access:**
-1. Open main dashboard: http://localhost:5000
-2. Click **⚙️ Admin Panel** button in top right
-3. Configure your settings
-4. Changes saved immediately
+See [CREDENTIALS_SETUP_GUIDE.md](CREDENTIALS_SETUP_GUIDE.md) for full details.
 
-### Command Line
+### Configuration Tab
+- Add search roles (e.g., "CISO", "Security Director")
+- Delete existing roles
+- Settings saved automatically
+
+### Schedule Tab
+- Set automated search times
+- Enable/disable automated searches
+- Check current schedule status
+
+### Prompts Tab
+- Customize AI extraction prompts
+- Adjust what data gets collected
+- Reset to defaults if needed
+
+### Weights Tab
+- Adjust scoring algorithm weights
+- Fine-tune what makes a "hot" opportunity
+- View current weight values
+
+### Search Control Tab
+- Search immediately
+- Enter custom queries
+- Process results now
+- View last search status
+
+### System Tab
+- View system status
+- Check active connections
+- Monitor resource usage
+
+## Complete Workflow Example
+
+```bash
+# Step 1: Install dependencies
+pip install -r requirements.txt
+
+# Step 2: Start dashboard
+python roleradar.py dashboard
+
+# Step 3: Open admin panel in your browser
+# URL: http://localhost:5000/admin
+
+# Step 4: Configure credentials (Credentials tab)
+# - Enter Tavily API key
+# - Enter Groq API key
+# - Click Test, then Save
+
+# Step 5: Set up search roles (Configuration tab)
+# - Add roles you want to search for
+# - e.g., "CISO", "Security Director", "VP of Security"
+
+# Step 6: Configure schedule (Schedule tab, optional)
+# - Set automated search times
+# - Or manually search whenever
+
+# Step 7: Run first search (Search Control tab)
+# - Click "Search Now"
+# - Wait for search to complete
+
+# Step 8: View results
+# - Go back to http://localhost:5000
+# - Browse opportunities by role
+# - Check company scores
+```
+
+## Command Line (Advanced/Optional)
 
 **View current configuration:**
 ```bash
 python secure_config_manager.py show
 ```
 
-**View dashboard admin panel:**
-Open http://localhost:5000/admin in your browser
-
-**Search for opportunities manually:**
+**Search manually:**
 ```bash
 python roleradar.py search
 ```
 
-**Process results with AI:**
+**Process results:**
 ```bash
 python roleradar.py process
 ```
 
-## Complete Workflow Example
-
-```bash
-# Step 1: Set up secure configuration
-python secure_config_manager.py init
-
-# Step 2: Initialize database
-python roleradar.py init
-
-# Step 3: Run initial search and processing
-python roleradar.py search
-python roleradar.py process
-
-# Step 4: View results in dashboard
-python roleradar.py dashboard
-# Open http://localhost:5000 in your browser
-
-# Step 5: Configure via Admin Panel
-# Click ⚙️ Admin Panel button
-# Add search roles, set schedule, customize prompts
-
-# Step 6: Set up automated searches (optional)
-# In another terminal:
-python scheduler.py
-```
-
-## Configuration Management
-
-### Using the Admin GUI (Recommended)
-1. Open dashboard: http://localhost:5000
-2. Click **⚙️ Admin Panel**
-3. Use the intuitive interface to:
-   - Add/remove search roles
-   - Set automated schedule
-   - Customize AI prompts
-   - Adjust scoring weights
-   - Trigger manual searches
-
-See **[ADMIN_GUI_QUICK_START.md](ADMIN_GUI_QUICK_START.md)** for detailed admin guide.
-
-### Using Command Line (Legacy)
-```bash
-# View current settings
-python secure_config_manager.py show
-
-# Update Search Roles
-python secure_config_manager.py set-roles "CISO, Security Director, Compliance Officer"
-
-# Update Schedule Times
-python secure_config_manager.py set-schedule "08:00, 12:00, 16:00, 20:00"
-
-# Update API Keys
-python secure_config_manager.py set-key TAVILY_API_KEY
-python secure_config_manager.py set-key GROQ_API_KEY
-```
+**Note:** Most users won't need these - the web interface handles everything!
 
 ## Port Configuration
 
@@ -202,10 +229,9 @@ FLASK_PORT=8000 python roleradar.py dashboard
 - Full functionality preserved
 
 To use PostgreSQL later:
-```bash
-# Update database URL in secure config
-python secure_config_manager.py set-key DATABASE_URL "postgresql://user:pass@host:5433/roleradar"
-```
+- Go to Admin Panel > Credentials tab
+- Enter your PostgreSQL connection string
+- Click Test, then Save
 
 ### Port Already in Use
 

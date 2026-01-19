@@ -48,65 +48,67 @@ cd roleradar
 pip install -r requirements.txt
 ```
 
-3. **Secure Configuration (Recommended):**
-```bash
-# Initialize encrypted credential storage
-python secure_config_manager.py init
-# You'll be prompted to create a master password and enter API keys
-
-# Get API keys from:
-# - Tavily: https://tavily.com
-# - Groq: https://console.groq.com
-```
-
-**Alternative (Legacy .env method):**
-```bash
-cp .env.example .env
-# Edit .env and add your API keys
-# Note: This method stores credentials in plaintext
-```
-
-See [SECURE_CONFIGURATION.md](SECURE_CONFIGURATION.md) for detailed security setup.
-
-## Usage
-
-### Initialize Database
-
-```bash
-python roleradar.py init
-```
-
-### Run a Search
-
-Run a one-time search for opportunities:
-
-```bash
-python roleradar.py search
-```
-
-### Process Results
-
-Process unprocessed search results with AI analysis:
-
-```bash
-python roleradar.py process
-```
-
-### View Statistics
-
-```bash
-python roleradar.py stats
-```
-
-### Launch Dashboard
-
-Start the web dashboard:
-
+3. **No CLI Setup Needed!** Start the dashboard:
 ```bash
 python roleradar.py dashboard
 ```
 
-Then open your browser to `http://localhost:5000`
+The application opens in your browser. Everything else (API keys, configuration) is done through the GUI!
+
+### That's It!
+Your browser automatically opens to http://localhost:5000. See the **Credentials** tab in the Admin Panel to configure everything through the web interface.
+
+**Need detailed setup steps?** See [QUICK_START.md](QUICK_START.md) or [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)
+
+## Usage
+
+### Start Dashboard (All-in-One)
+```bash
+python roleradar.py dashboard
+```
+
+Your browser opens automatically to **http://localhost:5000**
+
+**Everything you need is in the web interface:**
+- 🔐 **Credentials Tab:** Enter API keys (Tavily, Groq)
+- ⚙️ **Configuration Tab:** Add/remove search roles
+- 📅 **Schedule Tab:** Set up automated searches
+- 🤖 **Prompts Tab:** Customize AI analysis
+- ⚖️ **Weights Tab:** Adjust scoring algorithm
+- 🔎 **Search Control Tab:** Run searches immediately
+- 📊 **System Tab:** Monitor status
+
+### Advanced Usage (Optional - For Power Users)
+
+Run a one-time search:
+```bash
+python roleradar.py search
+```
+
+Process results with AI:
+```bash
+python roleradar.py process
+```
+
+View statistics:
+```bash
+python roleradar.py stats
+```
+
+**Note:** Most users won't need the CLI - everything is available in the web dashboard!
+
+### Scheduled Searches (Production)
+
+For 24/7 automated searches, run the scheduler in background:
+```bash
+python scheduler.py
+```
+
+This runs searches at times configured in the Admin Panel's Schedule tab.
+
+---
+
+**👉 First Time User?** Start with [QUICK_START.md](QUICK_START.md) or [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)Then open your browser to `http://localhost:5000`
 
 **Dashboard Features:**
 - View top companies and opportunities
