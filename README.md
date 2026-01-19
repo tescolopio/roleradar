@@ -1,6 +1,24 @@
 # 🎯 RoleRadar
 
+**✅ STATUS: DEPLOYMENT READY - Complete Web-Based Application**
+
 An intelligent system that automates daily searches for security, compliance, and GRC opportunities using Tavily for targeted queries and Groq for extraction, scoring, and summarization. It stores results in SQL and graph databases and surfaces them in a dashboard, highlighting posted roles and companies showing signals they'll need security or compliance leadership soon.
+
+## 🚀 Getting Started (Choose Your Path)
+
+### ⚡ **Individual User? (5 minutes)**
+→ [5_MINUTE_SETUP.md](5_MINUTE_SETUP.md) - Ultra-fast setup guide
+
+### 👥 **Small Team? (30 minutes)**
+→ [QUICK_START.md](QUICK_START.md) - Complete walkthrough
+
+### 🏢 **Enterprise Deployment? (6 hours)**
+→ [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) - Full production guide
+
+### 📚 **Need Help Choosing?**
+→ [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Complete navigation guide
+
+---
 
 ## Features
 
@@ -15,6 +33,7 @@ An intelligent system that automates daily searches for security, compliance, an
   - Adjusting scoring algorithm weights
   - Triggering manual searches and processing
   - Viewing system status and configuration
+  - **🔐 Credential Configuration**: Securely store API keys through web interface
 - **🤖 AI-Powered Analysis**: Uses Groq LLM to:
   - Extract entities (companies, job titles, locations)
   - Detect hiring signals (funding, expansion, breaches, compliance news)
@@ -28,12 +47,6 @@ An intelligent system that automates daily searches for security, compliance, an
   - Active job opportunities
   - Hiring signals and trends
   - Executive summaries
-  - Admin panel link for configuration
-- **🔐 Secure Configuration**: 
-  - AES-256 encrypted credential storage
-  - Master password protection
-  - No plaintext API keys in files
-  - PBKDF2 key derivation (390k iterations)
 
 ## Installation
 
