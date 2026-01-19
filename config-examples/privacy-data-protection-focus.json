@@ -1,0 +1,16 @@
+{
+  "name": "Privacy & Data Protection Focus",
+  "description": "Configuration for privacy, data protection, and GDPR-related roles",
+  "timezone": "Europe/London",
+  "search_roles": [
+    "privacy officer",
+    "data protection officer",
+    "privacy engineer",
+    "data governance specialist",
+    "compliance officer"
+  ],
+  "schedule_times": [
+    "08:00",
+    "14:00"
+  ]
+}

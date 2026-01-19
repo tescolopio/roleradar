@@ -1,0 +1,17 @@
+{
+  "name": "Startup Hiring Signals",
+  "description": "Configuration focused on startup and scale-up technical roles",
+  "timezone": "America/Los_Angeles",
+  "search_roles": [
+    "full stack engineer",
+    "backend engineer",
+    "DevOps engineer",
+    "security engineer",
+    "product manager",
+    "engineering manager"
+  ],
+  "schedule_times": [
+    "08:00",
+    "17:00"
+  ]
+}

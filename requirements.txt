@@ -6,3 +6,6 @@ python-dotenv==1.0.0
 schedule==1.2.0
 requests==2.31.0
 networkx==3.2.1
+
+# Security dependencies for encrypted configuration storage
+cryptography==42.0.0

@@ -1,0 +1,19 @@
+{
+  "name": "24/7 Continuous Monitoring",
+  "description": "Configuration for continuous 24-hour monitoring with 4-hour intervals",
+  "timezone": "UTC",
+  "search_roles": [
+    "security engineer",
+    "compliance officer",
+    "GRC analyst",
+    "CISO"
+  ],
+  "schedule_times": [
+    "00:00",
+    "04:00",
+    "08:00",
+    "12:00",
+    "16:00",
+    "20:00"
+  ]
+}

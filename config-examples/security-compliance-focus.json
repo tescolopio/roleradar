@@ -1,0 +1,20 @@
+{
+  "name": "Security & Compliance Focus",
+  "description": "Default configuration optimized for security and compliance roles",
+  "timezone": "America/New_York",
+  "search_roles": [
+    "security engineer",
+    "compliance officer",
+    "GRC analyst",
+    "Chief Information Security Officer (CISO)",
+    "data protection officer (DPO)",
+    "security leadership",
+    "security architect",
+    "InfoSec director"
+  ],
+  "schedule_times": [
+    "08:00",
+    "12:00",
+    "15:00"
+  ]
+}

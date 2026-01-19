@@ -1,0 +1,19 @@
+{
+  "name": "DevOps & Infrastructure Focus",
+  "description": "Configuration for DevOps, infrastructure, and cloud roles",
+  "timezone": "America/New_York",
+  "search_roles": [
+    "DevOps engineer",
+    "cloud architect",
+    "SRE",
+    "infrastructure engineer",
+    "platform engineer",
+    "Kubernetes engineer"
+  ],
+  "schedule_times": [
+    "06:00",
+    "10:00",
+    "14:00",
+    "18:00"
+  ]
+}

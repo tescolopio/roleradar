@@ -25,6 +25,12 @@ wheels/
 
 # Environment
 .env
+.env.backup
+*.backup
+
+# Secure Configuration (already encrypted, but keep private)
+config.enc
+config-*.json
 
 # Database
 *.db

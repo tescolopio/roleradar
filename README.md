@@ -5,6 +5,9 @@ An intelligent system that automates daily searches for security, compliance, an
 ## Features
 
 - **🔍 Automated Daily Searches**: Uses Tavily API to search for security, compliance, and GRC job opportunities
+  - **Configurable Roles**: Search for any job title or role (not just security)
+  - **Flexible Scheduling**: Run searches multiple times per day at custom times
+  - **Community Ready**: Share and reuse configurations with the community
 - **🤖 AI-Powered Analysis**: Uses Groq LLM to:
   - Extract entities (companies, job titles, locations)
   - Detect hiring signals (funding, expansion, breaches, compliance news)
@@ -18,6 +21,11 @@ An intelligent system that automates daily searches for security, compliance, an
   - Active job opportunities
   - Hiring signals and trends
   - Executive summaries
+- **🔐 Secure Configuration**: 
+  - AES-256 encrypted credential storage
+  - Master password protection
+  - No plaintext API keys in files
+  - PBKDF2 key derivation (390k iterations)
 
 ## Installation
 
@@ -32,13 +40,25 @@ cd roleradar
 pip install -r requirements.txt
 ```
 
-3. Configure API keys:
+3. **Secure Configuration (Recommended):**
+```bash
+# Initialize encrypted credential storage
+python secure_config_manager.py init
+# You'll be prompted to create a master password and enter API keys
+
+# Get API keys from:
+# - Tavily: https://tavily.com
+# - Groq: https://console.groq.com
+```
+
+**Alternative (Legacy .env method):**
 ```bash
 cp .env.example .env
-# Edit .env and add your API keys:
-# - TAVILY_API_KEY: Get from https://tavily.com
-# - GROQ_API_KEY: Get from https://console.groq.com
+# Edit .env and add your API keys
+# Note: This method stores credentials in plaintext
 ```
+
+See [SECURE_CONFIGURATION.md](SECURE_CONFIGURATION.md) for detailed security setup.
 
 ## Usage
 
@@ -88,7 +108,61 @@ Run the scheduler for automated daily searches:
 python scheduler.py
 ```
 
-This will run searches daily at 9:00 AM and process results automatically.
+This will run searches at your configured times (default: 8 AM, 12 PM, 3 PM EST) and process results automatically.
+
+### Configuration
+
+RoleRadar supports **secure encrypted configuration** for protecting your credentials:
+
+#### Secure Configuration (Recommended)
+
+```bash
+# Initialize and set up credentials securely
+python secure_config_manager.py init
+
+# View configuration
+python secure_config_manager.py show
+
+# Update API keys
+python secure_config_manager.py set-key TAVILY_API_KEY
+python secure_config_manager.py set-key GROQ_API_KEY
+
+# Customize search roles and schedule
+python secure_config_manager.py set-roles "DevOps engineer, cloud architect, SRE"
+python secure_config_manager.py set-schedule "06:00, 10:00, 14:00, 18:00"
+
+# Migrate from .env to secure storage
+python secure_config_manager.py migrate
+```
+
+See [SECURE_CONFIGURATION.md](SECURE_CONFIGURATION.md) for complete security documentation.
+
+#### Customizable Settings
+
+- **Search Roles**: Change what job titles to search for (not limited to security)
+- **Schedule Times**: Search multiple times per day at custom times
+- **Timezone**: Set your local timezone
+
+See [CONFIGURATION.md](CONFIGURATION.md) for detailed instructions.
+
+**Quick Examples:**
+
+```bash
+# View current configuration
+python config_manager.py show
+
+# Search for different roles
+python config_manager.py set-roles "DevOps engineer, cloud architect, SRE"
+
+# Change schedule to 6 AM, 10 AM, 2 PM, 6 PM
+python config_manager.py set-schedule "06:00, 10:00, 14:00, 18:00"
+
+# Add a role to existing searches
+python config_manager.py add-role "Privacy Officer"
+
+# Remove a time slot
+python config_manager.py remove-time "12:00"
+```
 
 ## Architecture
 
@@ -148,14 +222,22 @@ Tavily Search → Raw Results → Groq Analysis → Entity Extraction
 - Company → has_opening → Opportunity
 - Company → shows_signal → HiringSignal
 
-## Configuration
+## Configuration Reference
 
-Edit `src/roleradar/config.py` to customize:
+For detailed configuration documentation, see [CONFIGURATION.md](CONFIGURATION.md).
 
-- Search queries
-- Scoring weights
-- API settings
-- Dashboard settings
+Key environment variables (in `.env`):
+
+```bash
+# Search Roles (JSON array)
+SEARCH_ROLES=["security engineer", "compliance officer", "CISO"]
+
+# Scheduled Times (JSON array, 24-hour format)
+SCHEDULE_TIMES=["08:00", "12:00", "15:00"]
+
+# Timezone (IANA timezone format)
+TIMEZONE=America/New_York
+```
 
 ## API Endpoints
 
@@ -186,7 +268,9 @@ roleradar/
 │       └── static/
 ├── roleradar.py               # CLI application
 ├── scheduler.py               # Automated scheduler
+├── config_manager.py          # Configuration manager
 ├── requirements.txt           # Dependencies
+├── CONFIGURATION.md           # Configuration guide
 └── README.md
 ```
 
@@ -195,6 +279,18 @@ roleradar/
 - Python 3.8+ (3.12+ recommended for better timezone handling)
 - Tavily API key
 - Groq API key
+
+## Community
+
+RoleRadar supports community configuration sharing! Share your role searches and schedules:
+
+```bash
+# Export your configuration
+python config_manager.py export my-security-focus.json
+
+# Others can use your configuration
+python config_manager.py import my-security-focus.json
+```
 
 ## License
 
