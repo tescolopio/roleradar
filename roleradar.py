@@ -3,10 +3,25 @@
 
 import argparse
 import sys
+import socket
 from src.roleradar.database import db_service
 from src.roleradar.services import TavilySearchService, ProcessingService
 from src.roleradar.dashboard import create_app
 from src.roleradar.config import config
+
+
+def find_available_port(start_port=5000, max_attempts=20):
+    """Find an available port starting from start_port."""
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('127.0.0.1', port))
+            sock.close()
+            if result != 0:  # Port is available
+                return port
+        except Exception:
+            pass
+    return None
 
 
 def init_database():
@@ -55,13 +70,42 @@ def run_processing():
 
 def run_dashboard():
     """Run the web dashboard."""
-    print(f"Starting dashboard on http://{config.FLASK_HOST}:{config.FLASK_PORT}")
-    app = create_app()
-    app.run(
-        host=config.FLASK_HOST,
-        port=config.FLASK_PORT,
-        debug=False
-    )
+    # Determine port to use
+    configured_port = config.FLASK_PORT
+    
+    # Check if configured port is available
+    if find_available_port(configured_port, 1) is None:
+        # Find next available port
+        available_port = find_available_port(configured_port + 1, 10)
+        if available_port:
+            print(f"⚠️  Port {configured_port} is in use")
+            print(f"🔄 Using available port {available_port} instead")
+            port = available_port
+        else:
+            print(f"❌ Could not find available port starting from {configured_port}")
+            sys.exit(1)
+    else:
+        port = configured_port
+    
+    # Show database status
+    db_status = db_service.get_status()
+    print(f"📊 Database: {db_status['type']}")
+    
+    print(f"\n🚀 Starting dashboard on http://{config.FLASK_HOST}:{port}")
+    
+    try:
+        app = create_app()
+        app.run(
+            host=config.FLASK_HOST,
+            port=port,
+            debug=False
+        )
+    except KeyboardInterrupt:
+        print("\n\n👋 Dashboard stopped by user")
+        sys.exit(0)
+    except Exception as e:
+        print(f"\n❌ Error starting dashboard: {e}")
+        sys.exit(1)
 
 
 def show_stats():
