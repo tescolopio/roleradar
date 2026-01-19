@@ -85,7 +85,7 @@ class SecureConfigStore:
         Unlock existing configuration.
         
         Args:
-            master_password: Master password. If None, prompts user.
+            master_password: Master password. If None and interactive, prompts user.
         
         Returns:
             bool: True if successfully unlocked
@@ -94,8 +94,15 @@ class SecureConfigStore:
             print("❌ No configuration found. Run initialize first.")
             return False
         
+        # If password not provided, try to get it
         if master_password is None:
-            master_password = getpass.getpass("Enter master password: ")
+            import sys
+            # Only prompt if running in interactive terminal
+            if sys.stdin.isatty():
+                master_password = getpass.getpass("Enter master password: ")
+            else:
+                # Non-interactive mode - return False to allow fallback
+                return False
         
         try:
             with open(self.config_path, 'rb') as f:

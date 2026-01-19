@@ -25,29 +25,42 @@ class Config:
     
     def _load_config(self):
         """Load configuration from secure storage or .env fallback."""
-        # Check if secure config exists
+        # Always start by trying environment variables first
+        self._load_from_env()
+        
+        # Check if we're in web mode (dashboard/server)
+        web_mode = os.getenv('ROLERADAR_WEB_MODE', '0') == '1'
+        
+        # Then try to load from secure storage if it exists
         config_dir = Path.home() / ".roleradar"
         secure_config_path = config_dir / "config.enc"
         
         if secure_config_path.exists():
-            # Use secure storage
-            self._secure_store = get_secure_config()
-            if not self._secure_store.unlock():
-                print("⚠️  Failed to unlock secure configuration")
-                print("Falling back to environment variables...")
-                self._load_from_env()
-            else:
+            try:
+                # Use secure storage - try to unlock in interactive mode only
+                self._secure_store = get_secure_config()
+                
+                # If in web mode, don't ask for password - use env vars instead
+                if web_mode:
+                    return
+                
+                if sys.stdin.isatty():
+                    # Interactive mode - ask for password
+                    if not self._secure_store.unlock():
+                        # Password failed, continue with environment variables
+                        return
+                else:
+                    # Non-interactive mode - don't ask for password
+                    return
+                
+                # Successfully unlocked secure config
                 self._load_from_secure()
                 self._initialized = True
-        else:
-            # Fallback to environment variables
-            self._load_from_env()
-            
-            # Prompt to migrate to secure storage
-            if os.getenv("TAVILY_API_KEY") or os.getenv("GROQ_API_KEY"):
-                print("\n⚠️  API keys detected in environment variables")
-                print("For better security, run: python secure_config_manager.py init")
-                print("This will migrate your credentials to encrypted storage.\n")
+            except Exception as e:
+                # If secure config fails, just use environment variables
+                print(f"⚠️  Secure config error: {e}")
+                print("Continuing with environment variables...")
+                return
     
     def _load_from_secure(self):
         """Load configuration from secure storage."""

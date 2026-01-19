@@ -4,6 +4,12 @@
 import argparse
 import sys
 import socket
+import os
+
+# Set environment variable to indicate we're in dashboard/web mode (no password prompts)
+if len(sys.argv) > 1 and sys.argv[1] in ['dashboard', 'server']:
+    os.environ['ROLERADAR_WEB_MODE'] = '1'
+
 from src.roleradar.database import db_service
 from src.roleradar.services import TavilySearchService, ProcessingService
 from src.roleradar.dashboard import create_app
