@@ -79,6 +79,24 @@ This will:
   - Active job opportunities
   - Hiring signals and trends
   - Executive summaries
+  - Link to Admin Panel (⚙️ button in top right)
+
+### Admin Management Panel
+- **URL:** http://localhost:5000/admin
+- **Features:**
+  - Configure search roles (add/remove)
+  - Set automated search schedule
+  - Customize AI extraction prompts
+  - Adjust scoring weights
+  - Trigger manual searches
+  - Process results on demand
+  - View system status
+
+**Quick Admin Access:**
+1. Open main dashboard: http://localhost:5000
+2. Click **⚙️ Admin Panel** button in top right
+3. Configure your settings
+4. Changes saved immediately
 
 ### Command Line
 
@@ -87,10 +105,8 @@ This will:
 python secure_config_manager.py show
 ```
 
-**View database statistics:**
-```bash
-python roleradar.py stats
-```
+**View dashboard admin panel:**
+Open http://localhost:5000/admin in your browser
 
 **Search for opportunities manually:**
 ```bash
@@ -119,30 +135,41 @@ python roleradar.py process
 python roleradar.py dashboard
 # Open http://localhost:5000 in your browser
 
-# Step 5: Set up automated searches (optional)
+# Step 5: Configure via Admin Panel
+# Click ⚙️ Admin Panel button
+# Add search roles, set schedule, customize prompts
+
+# Step 6: Set up automated searches (optional)
 # In another terminal:
 python scheduler.py
 ```
 
 ## Configuration Management
 
-### View Current Settings
+### Using the Admin GUI (Recommended)
+1. Open dashboard: http://localhost:5000
+2. Click **⚙️ Admin Panel**
+3. Use the intuitive interface to:
+   - Add/remove search roles
+   - Set automated schedule
+   - Customize AI prompts
+   - Adjust scoring weights
+   - Trigger manual searches
+
+See **[ADMIN_GUI_QUICK_START.md](ADMIN_GUI_QUICK_START.md)** for detailed admin guide.
+
+### Using Command Line (Legacy)
 ```bash
+# View current settings
 python secure_config_manager.py show
-```
 
-### Update Search Roles
-```bash
-python secure_config_manager.py set-roles "security engineer, CISO, compliance officer"
-```
+# Update Search Roles
+python secure_config_manager.py set-roles "CISO, Security Director, Compliance Officer"
 
-### Update Schedule Times
-```bash
+# Update Schedule Times
 python secure_config_manager.py set-schedule "08:00, 12:00, 16:00, 20:00"
-```
 
-### Update API Keys
-```bash
+# Update API Keys
 python secure_config_manager.py set-key TAVILY_API_KEY
 python secure_config_manager.py set-key GROQ_API_KEY
 ```
