@@ -51,6 +51,142 @@ def create_app():
         opportunities = processing_service.get_active_opportunities(limit=limit)
         return jsonify(opportunities)
     
+    # ==================== Credentials Management API ====================
+    
+    @app.route('/api/credentials/status', methods=['GET'])
+    def get_credentials_status():
+        """Get credential configuration status (not the values)."""
+        return jsonify({
+            'tavily_configured': bool(config.TAVILY_API_KEY),
+            'groq_configured': bool(config.GROQ_API_KEY),
+            'database_configured': config.DATABASE_URL != 'sqlite:///roleradar.db',
+            'secure_mode': config.is_secure_mode()
+        })
+    
+    @app.route('/api/credentials/update', methods=['PUT'])
+    def update_credentials():
+        """Update API keys and database credentials."""
+        try:
+            data = request.get_json()
+            
+            # Validate at least one credential provided
+            tavily_key = data.get('tavily_api_key', '').strip()
+            groq_key = data.get('groq_api_key', '').strip()
+            database_url = data.get('database_url', '').strip()
+            
+            if not any([tavily_key, groq_key, database_url]):
+                return jsonify({'error': 'At least one credential must be provided'}), 400
+            
+            updated_fields = []
+            
+            # Update Tavily API Key
+            if tavily_key:
+                config.TAVILY_API_KEY = tavily_key
+                if hasattr(config, '_secure_store') and config._secure_store:
+                    config._secure_store.set("TAVILY_API_KEY", tavily_key)
+                updated_fields.append('Tavily API Key')
+            
+            # Update Groq API Key
+            if groq_key:
+                config.GROQ_API_KEY = groq_key
+                if hasattr(config, '_secure_store') and config._secure_store:
+                    config._secure_store.set("GROQ_API_KEY", groq_key)
+                updated_fields.append('Groq API Key')
+            
+            # Update Database URL
+            if database_url:
+                # Validate database URL format
+                if not any(database_url.startswith(prefix) for prefix in ['postgresql://', 'sqlite:///', 'mysql://']):
+                    return jsonify({'error': 'Invalid database URL. Must start with postgresql://, sqlite:///, or mysql://'}), 400
+                
+                config.DATABASE_URL = database_url
+                if hasattr(config, '_secure_store') and config._secure_store:
+                    config._secure_store.set("DATABASE_URL", database_url)
+                updated_fields.append('Database URL')
+            
+            # Save to secure storage if available
+            if hasattr(config, '_secure_store') and config._secure_store:
+                config._secure_store.save()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Updated: {", ".join(updated_fields)}',
+                'updated_fields': updated_fields,
+                'status': get_credentials_status().get_json()
+            })
+        except Exception as e:
+            return jsonify({'error': str(e), 'message': 'Failed to update credentials'}), 500
+    
+    @app.route('/api/credentials/test', methods=['POST'])
+    def test_credentials():
+        """Test if API keys and database connection work."""
+        try:
+            results = {}
+            
+            # Test Tavily API
+            if config.TAVILY_API_KEY:
+                try:
+                    tavily = TavilySearchService()
+                    results['tavily'] = {
+                        'status': 'valid',
+                        'message': 'Tavily API key is configured and valid'
+                    }
+                except Exception as e:
+                    results['tavily'] = {
+                        'status': 'invalid',
+                        'message': f'Tavily API error: {str(e)}'
+                    }
+            else:
+                results['tavily'] = {
+                    'status': 'not_configured',
+                    'message': 'Tavily API key not configured'
+                }
+            
+            # Test Groq API
+            if config.GROQ_API_KEY:
+                try:
+                    groq = GroqAnalysisService()
+                    if groq.client:
+                        results['groq'] = {
+                            'status': 'valid',
+                            'message': 'Groq API key is configured and valid'
+                        }
+                    else:
+                        results['groq'] = {
+                            'status': 'invalid',
+                            'message': 'Groq client initialization failed'
+                        }
+                except Exception as e:
+                    results['groq'] = {
+                        'status': 'invalid',
+                        'message': f'Groq API error: {str(e)}'
+                    }
+            else:
+                results['groq'] = {
+                    'status': 'not_configured',
+                    'message': 'Groq API key not configured'
+                }
+            
+            # Test Database Connection
+            try:
+                db_status = db_service.get_status()
+                results['database'] = {
+                    'status': 'valid' if db_status.get('status') == 'ready' else 'invalid',
+                    'message': f"{db_status.get('type')} database is {db_status.get('status')}"
+                }
+            except Exception as e:
+                results['database'] = {
+                    'status': 'invalid',
+                    'message': f'Database connection error: {str(e)}'
+                }
+            
+            return jsonify({
+                'success': True,
+                'results': results
+            })
+        except Exception as e:
+            return jsonify({'error': str(e), 'message': 'Failed to test credentials'}), 500
+    
     # ==================== Configuration Management API ====================
     
     @app.route('/api/config/search-roles', methods=['GET'])

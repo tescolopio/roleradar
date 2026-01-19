@@ -14,7 +14,10 @@
                 <h2>🎯 RoleRadar Admin</h2>
             </div>
             <nav class="sidebar-nav">
-                <a href="#search-control" class="nav-item active" data-section="search-control">
+                <a href="#credentials" class="nav-item active" data-section="credentials">
+                    🔐 Credentials
+                </a>
+                <a href="#search-control" class="nav-item" data-section="search-control">
                     🔍 Search Control
                 </a>
                 <a href="#configuration" class="nav-item" data-section="configuration">
@@ -42,14 +45,78 @@
         <main class="admin-content">
             <!-- Header -->
             <header class="admin-header">
-                <h1 id="section-title">Search Control</h1>
+                <h1 id="section-title">Credentials</h1>
                 <div class="status-indicator">
                     <span id="status-text">Initializing...</span>
                     <div id="status-dot" class="status-dot loading"></div>
                 </div>
             </header>
 
-            <!-- Search Control Section -->
+            <!-- Credentials Section -->
+            <section id="credentials" class="admin-section active">
+                <div class="section-content">
+                    <h2>🔐 API Keys & Credentials</h2>
+                    <p class="description">Configure your API keys and database credentials. All sensitive information is encrypted and stored securely.</p>
+                    
+                    <div class="control-group">
+                        <label>Tavily API Key</label>
+                        <p class="description">Get your API key from https://tavily.com</p>
+                        <div class="input-group">
+                            <input type="password" id="tavily-key" placeholder="Enter your Tavily API key" class="credential-input">
+                            <button id="btn-show-tavily" class="btn btn-small">👁 Show</button>
+                        </div>
+                        <div id="tavily-status" class="credential-status"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Groq API Key</label>
+                        <p class="description">Get your API key from https://console.groq.com</p>
+                        <div class="input-group">
+                            <input type="password" id="groq-key" placeholder="Enter your Groq API key" class="credential-input">
+                            <button id="btn-show-groq" class="btn btn-small">👁 Show</button>
+                        </div>
+                        <div id="groq-status" class="credential-status"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Database URL (Optional)</label>
+                        <p class="description">Leave empty to use SQLite. For PostgreSQL, use: postgresql://user:password@host:port/database</p>
+                        <input type="text" id="database-url" placeholder="postgresql://user:password@localhost:5432/roleradar" class="full-width">
+                        <div id="database-status" class="credential-status"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btn-test-credentials" class="btn btn-secondary">✓ Test Credentials</button>
+                        <button id="btn-save-credentials" class="btn btn-primary">💾 Save Credentials</button>
+                    </div>
+                    <div id="credentials-status" class="status-box"></div>
+
+                    <div class="credentials-info-box">
+                        <strong>🔒 Security Information</strong>
+                        <ul>
+                            <li>All credentials are encrypted with AES-256</li>
+                            <li>Passwords are protected with PBKDF2 (390,000 iterations)</li>
+                            <li>Credentials are never logged or displayed in plain text</li>
+                            <li>Use "Test Credentials" to verify before saving</li>
+                        </ul>
+                    </div>
+
+                    <div class="credentials-status-grid">
+                        <div class="status-card">
+                            <div class="status-card-label">Tavily</div>
+                            <div id="tavily-check" class="status-card-value">⚠️ Not Set</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-card-label">Groq</div>
+                            <div id="groq-check" class="status-card-value">⚠️ Not Set</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-card-label">Database</div>
+                            <div id="database-check" class="status-card-value">⚠️ SQLite</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             <section id="search-control" class="admin-section active">
                 <div class="section-content">
                     <h2>🔍 Manual Search & Processing</h2>

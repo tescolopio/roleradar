@@ -237,6 +237,11 @@ body {
     background: #dc2626;
 }
 
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
 .button-group {
     display: flex;
     gap: 1rem;
@@ -653,3 +658,96 @@ body {
         width: 100%;
     }
 }
+
+/* Credentials Panel Styles */
+
+.credential-input {
+    padding: 0.75rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+}
+
+.credential-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.credential-status {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    min-height: 20px;
+}
+
+.credential-status.success {
+    color: var(--success);
+}
+
+.credential-status.error {
+    color: var(--error);
+}
+
+.credentials-info-box {
+    background: rgba(79, 70, 229, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.credentials-info-box strong {
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.credentials-info-box ul {
+    list-style: none;
+    margin-top: 0.75rem;
+}
+
+.credentials-info-box li {
+    padding: 0.25rem 0;
+    color: var(--text-secondary);
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.credentials-info-box li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: bold;
+}
+
+.credentials-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.full-width {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.full-width:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
