@@ -1,24 +1,22 @@
 # 🎯 RoleRadar
 
-**✅ STATUS: DEPLOYMENT READY - Complete Web-Based Application**
-
 An intelligent system that automates daily searches for security, compliance, and GRC opportunities using Tavily for targeted queries and Groq for extraction, scoring, and summarization. It stores results in SQL and graph databases and surfaces them in a dashboard, highlighting posted roles and companies showing signals they'll need security or compliance leadership soon.
 
-## 🚀 Getting Started (Choose Your Path)
+## ⚡ Quick Start
 
-### ⚡ **Individual User? (5 minutes)**
-→ [5_MINUTE_SETUP.md](5_MINUTE_SETUP.md) - Ultra-fast setup guide
+```bash
+# 1. Install
+pip install -r requirements.txt
 
-### 👥 **Small Team? (30 minutes)**
-→ [QUICK_START.md](QUICK_START.md) - Complete walkthrough
+# 2. Run dashboard
+python roleradar.py dashboard
 
-### 🏢 **Enterprise Deployment? (6 hours)**
-→ [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) - Full production guide
+# 3. Open browser → http://localhost:5000
+# 4. Click ⚙️ → Configure API keys
+# 5. Add search roles → Click "Search Now"
+```
 
-### 📚 **Need Help Choosing?**
-→ [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Complete navigation guide
-
----
+Done! Everything else is through the web interface.
 
 ## Features
 
