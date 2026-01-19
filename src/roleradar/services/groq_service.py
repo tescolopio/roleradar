@@ -17,7 +17,7 @@ class GroqAnalysisService:
             self.client = None
         else:
             self.client = Groq(api_key=self.api_key)
-        self.model = "llama-3.1-70b-versatile"
+        self.model = "mixtral-8x7b-32768"
     
     def extract_entities(self, text: str) -> Dict[str, Any]:
         """
