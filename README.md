@@ -1,6 +1,6 @@
 # 🎯 RoleRadar
 
-An intelligent system that automates daily searches for security, compliance, and GRC opportunities using Tavily for targeted queries and Groq for extraction, scoring, and summarization. It stores results in SQL and graph databases and surfaces them in a dashboard, highlighting posted roles and companies showing signals they'll need security or compliance leadership soon.
+An intelligent system that automates daily searches for security, compliance, and GRC opportunities using Tavily or Brave Search for targeted queries and Groq for extraction, scoring, and summarization. It stores results in SQL and graph databases and surfaces them in a dashboard, highlighting posted roles and companies showing signals they'll need security or compliance leadership soon.
 
 ## ⚡ Quick Start
 
@@ -20,7 +20,7 @@ Done! Everything else is through the web interface.
 
 ## Features
 
-- **🔍 Automated Daily Searches**: Uses Tavily API to search for security, compliance, and GRC job opportunities
+- **🔍 Automated Daily Searches**: Uses Tavily or Brave Search APIs to search for security, compliance, and GRC job opportunities
   - **Configurable Roles**: Search for any job title or role (not just security)
   - **Flexible Scheduling**: Run searches multiple times per day at custom times
   - **Community Ready**: Share and reuse configurations with the community
@@ -69,7 +69,7 @@ The application opens in your browser. Everything else (API keys, configuration)
 ### That's It!
 Your browser automatically opens to http://localhost:5000. See the **Credentials** tab in the Admin Panel to configure everything through the web interface.
 
-**Need detailed setup steps?** See [QUICK_START.md](QUICK_START.md) or [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)
+**Need detailed setup steps?** See [QUICK_START.md](QUICK_START.md) or [DOCKER_DEPLOYMENT_CHECKLIST.md](DOCKER_DEPLOYMENT_CHECKLIST.md)
 
 ## Usage
 
@@ -81,7 +81,7 @@ python roleradar.py dashboard
 Your browser opens automatically to **http://localhost:5000**
 
 **Everything you need is in the web interface:**
-- 🔐 **Credentials Tab:** Enter API keys (Tavily, Groq)
+- 🔐 **Credentials Tab:** Enter API keys (Tavily or Brave, Groq)
 - ⚙️ **Configuration Tab:** Add/remove search roles
 - 📅 **Schedule Tab:** Set up automated searches
 - 🤖 **Prompts Tab:** Customize AI analysis
@@ -119,7 +119,7 @@ This runs searches at times configured in the Admin Panel's Schedule tab.
 
 ---
 
-**👉 First Time User?** Start with [QUICK_START.md](QUICK_START.md) or [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)Then open your browser to `http://localhost:5000`
+**👉 First Time User?** Start with [QUICK_START.md](QUICK_START.md) or [DOCKER_DEPLOYMENT_CHECKLIST.md](DOCKER_DEPLOYMENT_CHECKLIST.md) Then open your browser to `http://localhost:5000`
 
 **Dashboard Features:**
 - View top companies and opportunities
@@ -142,7 +142,7 @@ http://localhost:5000/admin
 - ✅ Trigger manual searches
 - ✅ Monitor system status
 
-See [ADMIN_GUI_QUICK_START.md](ADMIN_GUI_QUICK_START.md) for detailed guide.
+See [ADMIN_GUI_QUICK_START.md](docs/ADMIN_GUI_QUICK_START.md) for detailed guide.
 
 ### Automated Daily Searches
 
@@ -168,7 +168,7 @@ RoleRadar supports **secure encrypted configuration** for protecting your creden
    - Customize prompts
    - Adjust weights
 
-See [ADMIN_GUI_GUIDE.md](ADMIN_GUI_GUIDE.md) for comprehensive documentation.
+See [ADMIN_GUI_GUIDE.md](docs/ADMIN_GUI_GUIDE.md) for comprehensive documentation.
 
 #### Secure Configuration (Command Line)
 
@@ -181,6 +181,7 @@ python secure_config_manager.py show
 
 # Update API keys
 python secure_config_manager.py set-key TAVILY_API_KEY
+python secure_config_manager.py set-key BRAVE_API_KEY
 python secure_config_manager.py set-key GROQ_API_KEY
 
 # Customize search roles and schedule
@@ -191,7 +192,7 @@ python secure_config_manager.py set-schedule "06:00, 10:00, 14:00, 18:00"
 python secure_config_manager.py migrate
 ```
 
-See [SECURE_CONFIGURATION.md](SECURE_CONFIGURATION.md) for complete security documentation.
+See [SECURE_CONFIGURATION.md](docs/SECURE_CONFIGURATION.md) for complete security documentation.
 
 #### Customizable Settings
 
@@ -224,8 +225,8 @@ python config_manager.py remove-time "12:00"
 
 ### Components
 
-1. **Search Service** (`services/tavily_service.py`)
-   - Performs targeted searches using Tavily API
+1. **Search Service** (`services/tavily_service.py`, `services/brave_service.py`)
+   - Performs targeted searches using Tavily or Brave Search APIs
    - Stores raw search results
    - Tracks processed vs unprocessed results
 
@@ -253,7 +254,7 @@ python config_manager.py remove-time "12:00"
 ### Data Flow
 
 ```
-Tavily Search → Raw Results → Groq Analysis → Entity Extraction
+Tavily/Brave Search → Raw Results → Groq Analysis → Entity Extraction
                                     ↓
                             Hiring Signals
                                     ↓
@@ -285,7 +286,10 @@ For detailed configuration documentation, see [CONFIGURATION.md](CONFIGURATION.m
 Key environment variables (in `.env`):
 
 ```bash
-# Search Roles (JSON array)
+# Search/API Keys (Use Tavily OR Brave)
+# TAVILY_API_KEY=your_key
+# BRAVE_API_KEY=your_key
+# GROQ_API_KEY=your_key
 SEARCH_ROLES=["security engineer", "compliance officer", "CISO"]
 
 # Scheduled Times (JSON array, 24-hour format)
@@ -313,7 +317,9 @@ roleradar/
 │   │   ├── database.py        # SQL models
 │   │   └── graph.py           # Graph database
 │   ├── services/              # Business logic
-│   │   ├── tavily_service.py  # Search service
+│   │   ├── tavily_service.py  # Tavily search service
+│   │   ├── brave_service.py   # Brave search service
+│   │   ├── search_factory.py  # Search service factory
 │   │   ├── groq_service.py    # AI analysis
 │   │   └── processing_service.py
 │   ├── database/              # Database layer
@@ -333,7 +339,7 @@ roleradar/
 ### Requirements
 
 - Python 3.8+ (3.12+ recommended for better timezone handling)
-- Tavily API key
+- Tavily API key or Brave Search API key
 - Groq API key
 
 ## Community
@@ -355,3 +361,59 @@ See LICENSE file for details.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Docker Deployment
+
+Run RoleRadar with Docker for consistent deployments.
+
+### Quick Start (docker-compose)
+
+```bash
+# 1) Build the image
+docker compose build
+
+# 2) Set env vars (create .env in repo root, optional)
+cat > .env << 'EOF'
+TAVILY_API_KEY=
+BRAVE_API_KEY=
+GROQ_API_KEY=
+# Persist DB to a named volume at /data inside the container
+DATABASE_URL=sqlite:////data/roleradar.db
+TIMEZONE=America/New_York
+# Processing + LLM safety (optional overrides)
+PROCESS_BATCH_SIZE=20
+GROQ_MAX_INPUT_CHARS=4000
+SQLITE_FALLBACK_URL=sqlite:////data/roleradar.db
+EOF
+
+# 3) Start web + scheduler
+docker compose up -d
+
+# 4) Open the dashboard
+xdg-open http://localhost:9000 || echo "Open http://localhost:9000"
+```
+
+### Notes
+
+- Web service listens on port 8000 (mapped to host 9000 by default).
+- Scheduler runs as a separate service and shares the same DB volume.
+- To use Postgres/MySQL, set `DATABASE_URL` accordingly (e.g., `postgresql://user:pass@host:5432/dbname`).
+- Health endpoint: `GET /api/system/health`.
+- Batching and context safety:
+   - `PROCESS_BATCH_SIZE` controls how many search results are processed per batch (default 20).
+   - `GROQ_MAX_INPUT_CHARS` limits text length sent to Groq (default 4000), truncating longer inputs safely.
+   - `SQLITE_FALLBACK_URL` ensures both services fall back to the same SQLite file if Postgres is unavailable.
+
+### Common Commands
+
+```bash
+# View logs
+docker compose logs -f web
+docker compose logs -f scheduler
+
+# Stop services
+docker compose down
+
+# Rebuild after changes
+docker compose build --no-cache && docker compose up -d
+```

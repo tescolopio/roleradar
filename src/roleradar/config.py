@@ -68,6 +68,7 @@ class Config:
         
         # API Keys
         self.TAVILY_API_KEY = store.get("TAVILY_API_KEY", "")
+        self.BRAVE_API_KEY = store.get("BRAVE_API_KEY", "")
         self.GROQ_API_KEY = store.get("GROQ_API_KEY", "")
         
         # Database
@@ -87,34 +88,42 @@ class Config:
         
         # Scoring weights
         self.SCORING_WEIGHTS = store.get("SCORING_WEIGHTS", {
-            "explicit_job_posting": 0.4,
-            "hiring_signals": 0.3,
-            "company_growth": 0.2,
-            "recent_activity": 0.1,
+            "explicit_job_posting": 0.35,
+            "hiring_signals": 0.25,
+            "company_growth": 0.20,
+            "recent_activity": 0.10,
+            "location_proximity": 0.10,
         })
-    
+
+        # Location-based ranking
+        self.USER_LOCATION = store.get("USER_LOCATION", None)
+        self.MAX_DISTANCE_MILES = float(store.get("MAX_DISTANCE_MILES", 500))
+
+        # API Search controls
+        api_enabled = store.get("API_SEARCHES_ENABLED", "1")
+        self.API_SEARCHES_ENABLED = api_enabled != "0" if isinstance(api_enabled, str) else bool(api_enabled)
+
     def _load_from_env(self):
         """Load configuration from environment variables (legacy/fallback)."""
         # API Keys
         self.TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
+        self.BRAVE_API_KEY = os.getenv("BRAVE_API_KEY", "")
         self.GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-        
+
         # Database
         self.DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///roleradar.db")
-        
+
         # Flask
         self.FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
         self.FLASK_HOST = os.getenv("FLASK_HOST", "0.0.0.0")
         self.FLASK_PORT = int(os.getenv("FLASK_PORT", "5000"))
-        
+
         # Timezone for scheduling
         self.TIMEZONE = os.getenv("TIMEZONE", "America/New_York")
-        # Timezone for scheduling
-        self.TIMEZONE = os.getenv("TIMEZONE", "America/New_York")
-        
+
         # Search settings
         self.SEARCH_ROLES = self._get_default_roles()
-        
+
         # Get roles from environment variable (JSON format) if available
         _roles_env = os.getenv("SEARCH_ROLES", "")
         if _roles_env:
@@ -122,7 +131,7 @@ class Config:
                 self.SEARCH_ROLES = json.loads(_roles_env)
             except json.JSONDecodeError:
                 pass
-        
+
         # Scheduled times for searches (24-hour format)
         self.SCHEDULE_TIMES = ["08:00", "12:00", "15:00"]
         _schedule_times_env = os.getenv("SCHEDULE_TIMES", "")
@@ -131,14 +140,73 @@ class Config:
                 self.SCHEDULE_TIMES = json.loads(_schedule_times_env)
             except json.JSONDecodeError:
                 pass
-        
+
         # Scoring weights
         self.SCORING_WEIGHTS = {
-            "explicit_job_posting": 0.4,
-            "hiring_signals": 0.3,
-            "company_growth": 0.2,
-            "recent_activity": 0.1,
+            "explicit_job_posting": 0.35,
+            "hiring_signals": 0.25,
+            "company_growth": 0.20,
+            "recent_activity": 0.10,
+            "location_proximity": 0.10,
         }
+
+        # Location-based ranking
+        self.USER_LOCATION = None
+        self.MAX_DISTANCE_MILES = float(os.getenv("MAX_DISTANCE_MILES", "500"))
+
+        # API Search controls - Set to 0 to disable API searches entirely
+        self.API_SEARCHES_ENABLED = os.getenv("API_SEARCHES_ENABLED", "1") != "0"
+
+    def load_from_database(self):
+        """
+        Load configuration overrides from database.
+        This should be called after database initialization.
+        """
+        try:
+            # Avoid circular import by importing here
+            from .database.service import db_service
+
+            # Load search roles from database if available
+            db_roles = db_service.get_config_value("SEARCH_ROLES")
+            if db_roles:
+                self.SEARCH_ROLES = db_roles
+
+            # Load schedule times from database if available
+            db_schedule = db_service.get_config_value("SCHEDULE_TIMES")
+            if db_schedule:
+                self.SCHEDULE_TIMES = db_schedule
+
+            # Load scoring weights from database if available
+            db_weights = db_service.get_config_value("SCORING_WEIGHTS")
+            if db_weights:
+                self.SCORING_WEIGHTS = db_weights
+
+            # Load prompts from database if available
+            db_entity_prompt = db_service.get_config_value("ENTITY_EXTRACTION_PROMPT")
+            if db_entity_prompt:
+                self.ENTITY_EXTRACTION_PROMPT = db_entity_prompt
+
+            db_signals_prompt = db_service.get_config_value("HIRING_SIGNALS_PROMPT")
+            if db_signals_prompt:
+                self.HIRING_SIGNALS_PROMPT = db_signals_prompt
+
+            db_growth_prompt = db_service.get_config_value("GROWTH_DETECTION_PROMPT")
+            if db_growth_prompt:
+                self.GROWTH_DETECTION_PROMPT = db_growth_prompt
+
+            # Load user location from database if available
+            db_location = db_service.get_config_value("USER_LOCATION")
+            if db_location:
+                self.USER_LOCATION = db_location
+
+            # Load max distance from database if available
+            db_max_distance = db_service.get_config_value("MAX_DISTANCE_MILES")
+            if db_max_distance:
+                self.MAX_DISTANCE_MILES = float(db_max_distance)
+
+        except Exception as e:
+            # Silently fail if database is not yet initialized
+            pass
     
     def _get_default_roles(self):
         """Get default search roles."""

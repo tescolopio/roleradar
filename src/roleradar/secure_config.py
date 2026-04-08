@@ -63,18 +63,22 @@ class SecureConfigStore:
         else:
             # Create new config
             if master_password is None:
-                print("\n🔐 Setting up secure configuration storage")
-                print("=" * 60)
-                master_password = getpass.getpass("Create master password: ")
-                confirm = getpass.getpass("Confirm master password: ")
+                import os
+                master_password = os.getenv('ROLERADAR_MASTER_PASSWORD')
                 
-                if master_password != confirm:
-                    print("❌ Passwords do not match")
-                    return False
-                
-                if len(master_password) < 8:
-                    print("❌ Password must be at least 8 characters")
-                    return False
+                if master_password is None:
+                    print("\n🔐 Setting up secure configuration storage")
+                    print("=" * 60)
+                    master_password = getpass.getpass("Create master password: ")
+                    confirm = getpass.getpass("Confirm master password: ")
+                    
+                    if master_password != confirm:
+                        print("❌ Passwords do not match")
+                        return False
+                    
+                    if len(master_password) < 8:
+                        print("❌ Password must be at least 8 characters")
+                        return False
             
             self._master_password = master_password
             self._config_data = self._get_default_config()
@@ -94,15 +98,19 @@ class SecureConfigStore:
             print("❌ No configuration found. Run initialize first.")
             return False
         
-        # If password not provided, try to get it
+        # If password not provided, try to get it from environment first
         if master_password is None:
-            import sys
-            # Only prompt if running in interactive terminal
-            if sys.stdin.isatty():
-                master_password = getpass.getpass("Enter master password: ")
-            else:
-                # Non-interactive mode - return False to allow fallback
-                return False
+            import os
+            master_password = os.getenv('ROLERADAR_MASTER_PASSWORD')
+            
+            # If not in environment, prompt if running in interactive terminal
+            if master_password is None:
+                import sys
+                if sys.stdin.isatty():
+                    master_password = getpass.getpass("Enter master password: ")
+                else:
+                    # Non-interactive mode - return False to allow fallback
+                    return False
         
         try:
             with open(self.config_path, 'rb') as f:

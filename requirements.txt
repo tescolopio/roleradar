@@ -1,5 +1,5 @@
 tavily-python==0.3.0
-groq==0.4.2
+groq>=0.11.0
 sqlalchemy==2.0.25
 flask==3.0.0
 python-dotenv==1.0.0
@@ -9,3 +9,14 @@ networkx==3.2.1
 
 # Security dependencies for encrypted configuration storage
 cryptography==42.0.0
+
+# Geolocation and geocoding for location-based ranking
+geopy==2.4.1
+
+# Production WSGI server
+gunicorn==21.2.0
+# Async worker support for SSE/streaming
+gevent>=23.9.1
+
+# PostgreSQL support (optional)
+psycopg2-binary>=2.9.9

@@ -36,7 +36,8 @@ header {
     margin-bottom: 40px;
     padding: 30px 0;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 20px;
     align-items: center;
 }
 
@@ -74,6 +75,52 @@ header h1 {
 
 .admin-link:hover {
     transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+}
+
+/* Navigation Menu */
+.main-nav {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: var(--card-bg);
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link {
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    border: 2px solid transparent;
+}
+
+.nav-link:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.nav-link.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.nav-link.admin-link {
+    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+    color: white;
+}
+
+.nav-link.admin-link:hover {
     box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
 }
 
@@ -198,6 +245,68 @@ tbody tr:hover {
     color: #1e40af;
 }
 
+/* Job Link Styles */
+.job-link {
+    display: inline-block;
+    padding: 6px 14px;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.job-link:hover {
+    background: var(--secondary-color);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* Graph Visualization */
+#graph-container {
+    width: 100%;
+    height: 600px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+}
+
+.graph-legend {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    background: var(--bg-color);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.legend-dot.company {
+    background: #3b82f6;
+}
+
+.legend-dot.opportunity {
+    background: #10b981;
+}
+
+.legend-dot.signal {
+    background: #f59e0b;
+}
+
 .role-compliance {
     background: #dcfce7;
     color: #15803d;
@@ -238,4 +347,356 @@ tbody tr:hover {
     th, td {
         padding: 10px;
     }
+}
+
+/* ==================== TOOLTIP STYLES ==================== */
+
+.custom-tooltip {
+  position: fixed;
+  background: #1e293b;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+  z-index: 10000;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.tooltip-header {
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-signal-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.signal-type {
+  text-transform: capitalize;
+}
+
+.signal-confidence {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.signal-description {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+.tooltip-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* ==================== SCORE BREAKDOWN TOOLTIPS ==================== */
+
+.score-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.score-label {
+  flex: 1;
+  font-size: 0.85rem;
+  min-width: 100px;
+}
+
+.score-bar {
+  flex: 2;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.score-value {
+  flex: 0 0 60px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+/* ==================== TABLE CONTROLS ==================== */
+
+.table-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-group select {
+  padding: 10px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.results-count {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* ==================== SORTABLE TABLE HEADERS ==================== */
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 25px;
+}
+
+.sortable:hover {
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.sort-indicator {
+  position: absolute;
+  right: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.sort-indicator.active {
+  color: var(--primary-color);
+  opacity: 1;
+  font-weight: bold;
+}
+
+.sortable:hover .sort-indicator {
+  opacity: 0.8;
+}
+
+/* ==================== LOADING STATES ==================== */
+
+.skeleton-loader {
+  padding: 30px;
+}
+
+.skeleton-title,
+.skeleton-subtitle,
+.skeleton-row {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #f8f8f8 50%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 32px;
+  width: 40%;
+  margin-bottom: 12px;
+}
+
+.skeleton-subtitle {
+  height: 20px;
+  width: 60%;
+  margin-bottom: 24px;
+}
+
+.skeleton-row {
+  height: 48px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Loading spinner for small loads */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(37, 99, 235, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 16px;
+}
+
+.loading-spinner-container p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Error and empty states */
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  gap: 16px;
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.7;
+}
+
+.error-message,
+.empty-message {
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 400px;
+}
+
+.tooltip-body {
+  margin-bottom: 8px;
+}
+
+.score-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.score-label {
+  min-width: 100px;
+  font-size: 0.85rem;
+}
+
+.score-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: #10b981;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.score-value {
+  min-width: 50px;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.tooltip-body {
+  margin-bottom: 8px;
+}
+
+.score-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.score-label {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+.score-bar {
+  flex: 2;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: #10b981;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.score-value {
+  flex: 0 0 60px;
+  text-align: right;
+  font-size: 0.8rem;
+  color: #10b981;
+  font-weight: 600;
 }

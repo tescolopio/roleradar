@@ -1,5 +1,8 @@
 // RoleRadar Dashboard JavaScript
 
+// Import tooltip handler
+import { tooltipHandler } from './core/tooltip-handler.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
     
@@ -51,7 +54,12 @@ async function loadCompanies() {
         tbody.innerHTML = companies.map(company => `
             <tr>
                 <td><strong>${escapeHtml(company.name)}</strong></td>
-                <td>${getScoreBadge(company.score)}</td>
+                <td class="score-cell"
+                    data-company-id="${company.id}"
+                    onmouseenter="showScoreTooltip(event, ${company.id}, ${company.score})"
+                    onmouseleave="hideTooltip()">
+                  ${getScoreBadge(company.score)}
+                </td>
                 <td>${company.active_opportunities}</td>
                 <td>${company.signals_count}</td>
                 <td>${escapeHtml(company.location || 'N/A')}</td>
@@ -81,7 +89,7 @@ async function loadOpportunities() {
                 <td>${getRoleTypeBadge(opp.role_type)}</td>
                 <td>${escapeHtml(opp.location || 'N/A')}</td>
                 <td>${formatDate(opp.discovered_date)}</td>
-                <td>${opp.url ? `<a href="${escapeHtml(opp.url)}" target="_blank" class="link-button">View</a>` : 'N/A'}</td>
+                <td>${opp.url ? `<a href="${escapeHtml(opp.url)}" target="_blank" rel="noopener noreferrer" class="job-link">🔗 View Job</a>` : 'N/A'}</td>
             </tr>
         `).join('');
     } catch (error) {
@@ -121,21 +129,35 @@ function getRoleTypeBadge(roleType) {
 
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
-    
+
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
+    let relativeText;
     if (diffDays === 0) {
-        return 'Today';
+        relativeText = 'Today';
     } else if (diffDays === 1) {
-        return 'Yesterday';
+        relativeText = 'Yesterday';
     } else if (diffDays < 7) {
-        return `${diffDays} days ago`;
+        relativeText = `${diffDays} days ago`;
     } else {
-        return date.toLocaleDateString();
+        relativeText = date.toLocaleDateString();
     }
+
+    // Create hoverable span with full date
+    const fullDate = date.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+    });
+
+    return `<span class="date-hover" title="${fullDate}">${relativeText}</span>`;
 }
 
 function escapeHtml(text) {
@@ -148,4 +170,51 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+async function showScoreTooltip(event, companyId, score) {
+  const response = await fetch(`/api/companies/${companyId}/score-breakdown`);
+  const breakdown = await response.json();
+
+  const content = `
+    <div class="tooltip-header">
+      Score Breakdown: ${Math.round(score)}/100
+    </div>
+    <div class="tooltip-body">
+      <div class="score-item">
+        <span class="score-label">Job Postings</span>
+        <div class="score-bar">
+          <div class="score-fill" style="width: ${breakdown.job_postings}%"></div>
+        </div>
+        <span class="score-value">${breakdown.job_postings.toFixed(1)} pts</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">Hiring Signals</span>
+        <div class="score-bar">
+          <div class="score-fill" style="width: ${breakdown.hiring_signals}%"></div>
+        </div>
+        <span class="score-value">${breakdown.hiring_signals.toFixed(1)} pts</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">Company Growth</span>
+        <div class="score-bar">
+          <div class="score-fill" style="width: ${breakdown.company_growth}%"></div>
+        </div>
+        <span class="score-value">${breakdown.company_growth.toFixed(1)} pts</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">Recent Activity</span>
+        <div class="score-bar">
+          <div class="score-fill" style="width: ${breakdown.recent_activity}%"></div>
+        </div>
+        <span class="score-value">${breakdown.recent_activity.toFixed(1)} pts</span>
+      </div>
+    </div>
+  `;
+
+  tooltipHandler.show(content, event);
+}
+
+function hideTooltip() {
+  tooltipHandler.hide();
 }

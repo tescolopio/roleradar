@@ -15,6 +15,7 @@ class AdminDashboard {
         await this.loadSystemStatus();
         await this.loadCredentialsStatus();
         await this.loadConfiguration();
+        await this.loadDataStatistics();
         this.showSection('credentials');
     }
 
@@ -32,6 +33,7 @@ class AdminDashboard {
 
         // Credentials
         document.getElementById('btn-show-tavily')?.addEventListener('click', () => this.togglePasswordField('tavily-key'));
+        document.getElementById('btn-show-brave')?.addEventListener('click', () => this.togglePasswordField('brave-key'));
         document.getElementById('btn-show-groq')?.addEventListener('click', () => this.togglePasswordField('groq-key'));
         document.getElementById('btn-test-credentials')?.addEventListener('click', () => this.testCredentials());
         document.getElementById('btn-save-credentials')?.addEventListener('click', () => this.saveCredentials());
@@ -64,6 +66,14 @@ class AdminDashboard {
         });
         document.getElementById('btn-save-weights')?.addEventListener('click', () => this.saveWeights());
         document.getElementById('btn-reset-weights')?.addEventListener('click', () => this.resetWeights());
+        
+        // Results
+        document.getElementById('btn-refresh-results')?.addEventListener('click', () => this.loadSearchResults());
+        document.getElementById('results-filter')?.addEventListener('input', () => this.loadSearchResults());
+        document.getElementById('show-processed-only')?.addEventListener('change', () => this.loadSearchResults());
+
+        // Data Management
+        this.setupDataManagementListeners();
     }
 
     // ==================== Navigation ====================
@@ -95,12 +105,18 @@ class AdminDashboard {
             'configuration': '⚙️ Configuration',
             'schedule': '📅 Schedule',
             'prompts': '💬 Prompts',
+            'results': '🔍 Search Results',
             'weights': '⚖️ Weights',
             'system': '🔧 System'
         };
 
         document.getElementById('section-title').textContent = titles[sectionId] || 'Dashboard';
         this.currentSection = sectionId;
+        
+        // Load data for specific sections
+        if (sectionId === 'results') {
+            this.loadSearchResults();
+        }
     }
 
     // ==================== Credentials Management ====================
@@ -113,6 +129,8 @@ class AdminDashboard {
             // Update credential status indicators
             document.getElementById('tavily-check').textContent = 
                 data.tavily_configured ? '✅ Configured' : '⚠️ Not Set';
+            document.getElementById('brave-check').textContent = 
+                data.brave_configured ? '✅ Configured' : '⚠️ Not Set';
             document.getElementById('groq-check').textContent = 
                 data.groq_configured ? '✅ Configured' : '⚠️ Not Set';
             document.getElementById('database-check').textContent = 
@@ -156,6 +174,13 @@ class AdminDashboard {
                     tavStatus.textContent = `${tavily.status === 'valid' ? '✅' : '❌'} ${tavily.message}`;
                 }
 
+                if (data.results.brave) {
+                    const brave = data.results.brave;
+                    const braveStatus = document.getElementById('brave-status');
+                    braveStatus.className = `credential-status ${brave.status === 'valid' ? 'success' : 'error'}`;
+                    braveStatus.textContent = `${brave.status === 'valid' ? '✅' : '❌'} ${brave.message}`;
+                }
+
                 if (data.results.groq) {
                     const groq = data.results.groq;
                     const groqStatus = document.getElementById('groq-status');
@@ -186,10 +211,11 @@ class AdminDashboard {
     async saveCredentials() {
         try {
             const tavilyKey = document.getElementById('tavily-key').value.trim();
+            const braveKey = document.getElementById('brave-key').value.trim();
             const groqKey = document.getElementById('groq-key').value.trim();
             const databaseUrl = document.getElementById('database-url').value.trim();
 
-            if (!tavilyKey && !groqKey && !databaseUrl) {
+            if (!tavilyKey && !braveKey && !groqKey && !databaseUrl) {
                 this.showStatus('credentials', '❌ At least one credential must be provided', 'error');
                 return;
             }
@@ -203,6 +229,7 @@ class AdminDashboard {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     tavily_api_key: tavilyKey,
+                    brave_api_key: braveKey,
                     groq_api_key: groqKey,
                     database_url: databaseUrl
                 })
@@ -215,6 +242,7 @@ class AdminDashboard {
                 
                 // Clear password fields after successful save
                 document.getElementById('tavily-key').value = '';
+                document.getElementById('brave-key').value = '';
                 document.getElementById('groq-key').value = '';
                 
                 // Update credential status
@@ -669,27 +697,68 @@ class AdminDashboard {
         try {
             btn.disabled = true;
             btn.textContent = '⏳ Processing...';
+            
+            statusBox.className = 'status-box info';
+            statusBox.innerHTML = '🔄 Starting processing...';
 
-            const response = await fetch('/api/search/process', {
-                method: 'POST'
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                statusBox.className = 'status-box success';
-                statusBox.innerHTML = `
-                    ✅ ${data.message}<br>
-                    Processed <strong>${data.processed_count}</strong> results
-                `;
-            } else {
+            const eventSource = new EventSource('/api/search/process');
+            
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'start') {
+                    statusBox.innerHTML = `
+                        🔄 Processing <strong>${data.total}</strong> results...<br>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <small id="current-item"></small>
+                    `;
+                } else if (data.type === 'progress') {
+                    const percent = ((data.processed / data.total) * 100).toFixed(1);
+                    const progressBar = document.getElementById('progress-fill');
+                    const currentItem = document.getElementById('current-item');
+                    
+                    if (progressBar) {
+                        progressBar.style.width = `${percent}%`;
+                    }
+                    if (currentItem) {
+                        currentItem.textContent = `${data.processed}/${data.total}: ${data.current.title}`;
+                    }
+                } else if (data.type === 'error') {
+                    const currentItem = document.getElementById('current-item');
+                    if (currentItem) {
+                        currentItem.innerHTML = `<span style="color: orange;">⚠️ Error on result ${data.result_id}: ${data.error}</span>`;
+                    }
+                } else if (data.type === 'complete') {
+                    eventSource.close();
+                    statusBox.className = 'status-box success';
+                    statusBox.innerHTML = `
+                        ✅ Processing complete!<br>
+                        Processed <strong>${data.processed}</strong> of <strong>${data.total}</strong> results
+                    `;
+                    btn.disabled = false;
+                    btn.textContent = '⚙️ Process Results';
+                } else if (data.type === 'fatal_error') {
+                    eventSource.close();
+                    statusBox.className = 'status-box error';
+                    statusBox.textContent = `❌ Fatal error: ${data.error}`;
+                    btn.disabled = false;
+                    btn.textContent = '⚙️ Process Results';
+                }
+            };
+            
+            eventSource.onerror = () => {
+                eventSource.close();
                 statusBox.className = 'status-box error';
-                statusBox.textContent = `❌ ${data.error}`;
-            }
+                statusBox.textContent = '❌ Connection lost. Please refresh and try again.';
+                btn.disabled = false;
+                btn.textContent = '⚙️ Process Results';
+            };
+            
         } catch (error) {
             statusBox.className = 'status-box error';
             statusBox.textContent = `❌ Error: ${error.message}`;
-        } finally {
             btn.disabled = false;
             btn.textContent = '⚙️ Process Results';
         }
@@ -702,6 +771,264 @@ class AdminDashboard {
         if (box) {
             box.className = `status-box ${type}`;
             box.textContent = message;
+        }
+    }
+    
+    // ==================== Search Results Transparency ====================
+    
+    async loadSearchResults() {
+        const container = document.getElementById('results-container');
+        if (!container) return;
+        
+        try {
+            container.innerHTML = '<div class="loading">Loading search results...</div>';
+            
+            const filter = document.getElementById('results-filter')?.value || '';
+            const processedOnly = document.getElementById('show-processed-only')?.checked || false;
+            
+            let url = `/api/search-results?limit=100`;
+            if (filter) url += `&query=${encodeURIComponent(filter)}`;
+            if (processedOnly) url += `&processed=true`;
+            
+            const response = await fetch(url);
+            const results = await response.json();
+            
+            if (results.length === 0) {
+                container.innerHTML = '<div class="info-box">No search results found. Run a search to see data.</div>';
+                return;
+            }
+            
+            container.innerHTML = results.map(r => this.renderSearchResult(r)).join('');
+            
+            // Add click handlers for detail view
+            container.querySelectorAll('.result-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const resultId = card.getAttribute('data-result-id');
+                    this.showResultDetail(resultId);
+                });
+            });
+        } catch (error) {
+            container.innerHTML = `<div class="error">Error loading results: ${error.message}</div>`;
+        }
+    }
+    
+    renderSearchResult(result) {
+        const processed = result.processed ? '✅' : '⏳';
+        const hasSignal = result.signal.detected ? '🚨' : '';
+        const hasError = result.error ? '⚠️' : '';
+        
+        return `
+            <div class="result-card" data-result-id="${result.id}">
+                <div class="result-header">
+                    <div class="result-title">
+                        <strong>${this.escapeHtml(result.title)}</strong>
+                        <span class="result-badges">${processed} ${hasSignal} ${hasError}</span>
+                    </div>
+                    <div class="result-meta">
+                        Query: <em>${this.escapeHtml(result.query)}</em> | 
+                        Retrieved: ${this.formatDate(result.retrieved_date)}
+                    </div>
+                </div>
+                
+                ${result.processed ? `
+                    <div class="result-extraction">
+                        <div class="extraction-item">
+                            <strong>Company:</strong> ${this.escapeHtml(result.extraction.company) || 'None'}
+                        </div>
+                        <div class="extraction-item">
+                            <strong>Job Title:</strong> ${this.escapeHtml(result.extraction.job_title) || 'None'}
+                        </div>
+                        <div class="extraction-item">
+                            <strong>Role Type:</strong> ${this.escapeHtml(result.extraction.role_type) || 'None'}
+                        </div>
+                        ${result.signal.detected ? `
+                            <div class="extraction-item signal">
+                                <strong>Signal:</strong> ${this.escapeHtml(result.signal.type)} 
+                                (${Math.round(result.signal.confidence * 100)}% confidence)
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : '<div class="result-pending">Not yet processed</div>'}
+                
+                ${result.error ? `<div class="result-error">❌ ${this.escapeHtml(result.error)}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    async showResultDetail(resultId) {
+        try {
+            const response = await fetch(`/api/search-result/${resultId}`);
+            const result = await response.json();
+            
+            // Create modal or expanded view
+            const modal = document.createElement('div');
+            modal.className = 'result-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Search Result Details</h3>
+                        <button class="btn-close" onclick="this.closest('.result-modal').remove()">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <h4>${this.escapeHtml(result.title)}</h4>
+                        <p><strong>URL:</strong> <a href="${result.url}" target="_blank">${result.url}</a></p>
+                        <p><strong>Query:</strong> ${this.escapeHtml(result.query)}</p>
+                        
+                        <h5>Original Content</h5>
+                        <div class="content-box">${this.escapeHtml(result.content)}</div>
+                        
+                        <h5>AI Extraction</h5>
+                        <table class="extraction-table">
+                            <tr><td><strong>Company:</strong></td><td>${this.escapeHtml(result.extraction.company) || 'None'}</td></tr>
+                            <tr><td><strong>Job Title:</strong></td><td>${this.escapeHtml(result.extraction.job_title) || 'None'}</td></tr>
+                            <tr><td><strong>Role Type:</strong></td><td>${this.escapeHtml(result.extraction.role_type) || 'None'}</td></tr>
+                            <tr><td><strong>Location:</strong></td><td>${this.escapeHtml(result.extraction.location) || 'None'}</td></tr>
+                            <tr><td><strong>Keywords:</strong></td><td>${result.extraction.keywords.join(', ') || 'None'}</td></tr>
+                        </table>
+                        
+                        ${result.signal.detected ? `
+                            <h5>Hiring Signal Detected 🚨</h5>
+                            <table class="extraction-table">
+                                <tr><td><strong>Type:</strong></td><td>${this.escapeHtml(result.signal.type)}</td></tr>
+                                <tr><td><strong>Confidence:</strong></td><td>${Math.round(result.signal.confidence * 100)}%</td></tr>
+                                <tr><td><strong>Description:</strong></td><td>${this.escapeHtml(result.signal.description)}</td></tr>
+                            </table>
+                        ` : '<p><em>No hiring signals detected</em></p>'}
+                        
+                        ${result.error ? `
+                            <h5>Processing Error ⚠️</h5>
+                            <div class="error-box">${this.escapeHtml(result.error)}</div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } catch (error) {
+            alert(`Error loading details: ${error.message}`);
+        }
+    }
+    
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleString();
+    }
+    
+    escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Data Management Functions
+    async loadDataStatistics() {
+        try {
+            const response = await fetch('/api/companies');
+            const companies = await response.json();
+            document.getElementById('stat-companies').textContent = companies.length;
+
+            const oppResponse = await fetch('/api/opportunities');
+            const opportunities = await oppResponse.json();
+            document.getElementById('stat-opportunities').textContent = opportunities.length;
+
+            const signalResponse = await fetch('/api/hiring-signals');
+            const signals = await signalResponse.json();
+            document.getElementById('stat-signals').textContent = signals.length;
+
+            // Populate company select dropdown
+            const select = document.getElementById('company-select');
+            const options = companies.map(c => `<option value="${c.id}">${c.name} (Score: ${c.score.toFixed(1)})</option>`);
+            select.innerHTML = '<option value="">-- Select a company --</option>' + options.join('');
+
+            // Enable delete button if there are companies
+            document.getElementById('btn-delete-company').disabled = companies.length === 0;
+        } catch (error) {
+            console.error('Error loading statistics:', error);
+        }
+    }
+
+    setupDataManagementListeners() {
+        document.getElementById('btn-clear-all')?.addEventListener('click', () => this.clearAllData());
+        document.getElementById('btn-delete-company')?.addEventListener('click', () => this.deleteSelectedCompany());
+    }
+
+    async clearAllData() {
+        if (!confirm('⚠️ This will delete ALL data (companies, opportunities, signals). This cannot be undone. Are you sure?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/data/clear', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                const statusEl = document.getElementById('clear-status');
+                statusEl.className = 'status-box success';
+                statusEl.innerHTML = `
+                    <strong>✓ Data cleared successfully</strong><br>
+                    Deleted: ${result.deleted.companies} companies,
+                    ${result.deleted.opportunities} opportunities,
+                    ${result.deleted.signals} signals
+                `;
+
+                // Refresh statistics
+                await this.loadDataStatistics();
+            } else {
+                throw new Error(result.error || 'Failed to clear data');
+            }
+        } catch (error) {
+            const statusEl = document.getElementById('clear-status');
+            statusEl.className = 'status-box error';
+            statusEl.textContent = `❌ Error: ${error.message}`;
+        }
+    }
+
+    async deleteSelectedCompany() {
+        const select = document.getElementById('company-select');
+        const companyId = select.value;
+        const companyName = select.options[select.selectedIndex].text;
+
+        if (!companyId) {
+            alert('Please select a company');
+            return;
+        }
+
+        if (!confirm(`Delete "${companyName}" and all its data? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/data/delete-company/${companyId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                const statusEl = document.getElementById('delete-company-status');
+                statusEl.className = 'status-box success';
+                statusEl.textContent = `✓ ${result.message}`;
+
+                // Refresh statistics
+                await this.loadDataStatistics();
+            } else {
+                throw new Error(result.error || 'Failed to delete company');
+            }
+        } catch (error) {
+            const statusEl = document.getElementById('delete-company-status');
+            statusEl.className = 'status-box error';
+            statusEl.textContent = `❌ Error: ${error.message}`;
         }
     }
 }

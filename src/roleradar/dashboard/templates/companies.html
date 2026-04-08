@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Companies - RoleRadar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-main">
+                <h1>🎯 RoleRadar</h1>
+                <p class="subtitle">Security, Compliance & GRC Opportunity Tracker</p>
+            </div>
+            <nav class="main-nav">
+                <a href="/" class="nav-link">📊 Dashboard</a>
+                <a href="/companies" class="nav-link active">🏢 Companies</a>
+                <a href="/opportunities" class="nav-link">💼 Opportunities</a>
+                <a href="/relationships" class="nav-link">🔗 Relationships</a>
+                <a href="/admin" class="nav-link admin-link">⚙️ Admin</a>
+            </nav>
+        </header>
+
+        <div id="companies-section" class="section">
+            <h2>🏢 All Companies</h2>
+            <p class="description">Companies discovered through automated searches, ranked by opportunity score.</p>
+
+            <div class="table-controls">
+                <div class="search-box">
+                    <input type="text"
+                           id="company-search"
+                           placeholder="🔍 Search companies..."
+                           class="search-input"
+                           oninput="filterCompanies()">
+                </div>
+                <div class="filter-group">
+                    <select id="score-filter" onchange="filterCompanies()">
+                        <option value="">All Scores</option>
+                        <option value="high">High (70+)</option>
+                        <option value="medium">Medium (40-69)</option>
+                        <option value="low">Low (<40)</option>
+                    </select>
+                    <select id="location-filter" onchange="filterCompanies()">
+                        <option value="">All Locations</option>
+                        <option value="remote">Remote</option>
+                        <option value="onsite">On-site</option>
+                    </select>
+                    <button onclick="clearFilters()" class="btn btn-small">Clear</button>
+                </div>
+                <div class="results-count">
+                    Showing <span id="visible-count">0</span> of <span id="total-count">0</span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="companies-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortTable('name')" data-column="name">
+                                Company
+                                <span class="sort-indicator" data-column="name"></span>
+                            </th>
+                            <th class="sortable" onclick="sortTable('score')" data-column="score">
+                                Score
+                                <span class="sort-indicator" data-column="score"></span>
+                            </th>
+                            <th class="sortable" onclick="sortTable('active_opportunities')" data-column="active_opportunities">
+                                Active Roles
+                                <span class="sort-indicator" data-column="active_opportunities"></span>
+                            </th>
+                            <th class="sortable" onclick="sortTable('signals_count')" data-column="signals_count">
+                                Hiring Signals
+                                <span class="sort-indicator" data-column="signals_count"></span>
+                            </th>
+                            <th class="sortable" onclick="sortTable('location')" data-column="location">
+                                Location
+                                <span class="sort-indicator" data-column="location"></span>
+                            </th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companies-tbody">
+                        <tr>
+                            <td colspan="6">Loading companies...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="{{ url_for('static', filename='js/core/tooltip-handler.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/companies.js') }}"></script>
+</body>
+</html>

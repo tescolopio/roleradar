@@ -1,28 +1,33 @@
-"""Tavily search service for discovering opportunities."""
+"""Brave search service for discovering opportunities."""
 
+import requests
 from typing import List, Dict, Any
 from datetime import datetime, timezone
-from tavily import TavilyClient
 from ..config import config
 from ..models import SearchResult
 from ..database import db_service
+from .api_tracker import APITracker
 
-
-class TavilySearchService:
-    """Service for performing targeted searches using Tavily API."""
+class BraveSearchService:
+    """Service for performing targeted searches using Brave Search API."""
     
     def __init__(self, api_key=None):
-        """Initialize Tavily search service."""
-        self.api_key = api_key or config.TAVILY_API_KEY
+        """Initialize Brave search service."""
+        self.api_key = api_key or getattr(config, 'BRAVE_API_KEY', None)
         if not self.api_key:
-            print("Warning: Tavily API key not configured. Search functionality will be limited.")
+            print("Warning: Brave API key not configured. Search functionality will be limited.")
             self.client = None
         else:
-            self.client = TavilyClient(api_key=self.api_key)
-    
+            self.client = requests.Session()
+            self.client.headers.update({
+                "Accept": "application/json",
+                "Accept-Encoding": "gzip",
+                "X-Subscription-Token": self.api_key
+            })
+            
     def search(self, query: str, max_results: int = 10) -> List[Dict[str, Any]]:
         """
-        Perform a search using Tavily.
+        Perform a search using Brave Search.
 
         Args:
             query: Search query string
@@ -31,41 +36,50 @@ class TavilySearchService:
         Returns:
             List of search results
         """
-        # Safety check: Ensure API searches are enabled
-        if not config.API_SEARCHES_ENABLED:
+        if not getattr(config, 'API_SEARCHES_ENABLED', True):
             print("⚠️  API searches are currently disabled in configuration.")
             return []
 
         if not self.client:
-            print("Error: Tavily client not initialized. Please configure TAVILY_API_KEY.")
+            print("Error: Brave client not initialized. Please configure BRAVE_API_KEY.")
             return []
         
         try:
-            response = self.client.search(
-                query=query,
-                max_results=max_results,
-                search_depth="advanced",
-                include_domains=[],
-                exclude_domains=[]
-            )
-
-            results = response.get("results", [])
+            url = "https://api.search.brave.com/res/v1/web/search"
+            params = {
+                "q": query,
+                "count": min(max_results, 20)  # Brave limits count to 20
+            }
+            
+            response = self.client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            web_results = data.get("web", {}).get("results", [])
+            
+            results = []
+            for r in web_results:
+                results.append({
+                    "title": r.get("title", ""),
+                    "content": r.get("description", ""),
+                    "url": r.get("url", ""),
+                    "score": 0.5,  # Default score as Brave doesn't provide relevance score like Tavily
+                    "published_date": r.get("age", "")
+                })
 
             # Track API call
-            from .api_tracker import APITracker
             APITracker.log_api_call(
-                api_name='tavily',
+                api_name='brave',
                 endpoint='search',
                 query=query,
                 result_count=len(results)
             )
 
-            return results
+            return results[:max_results]
         except Exception as e:
             # Track failed call
-            from .api_tracker import APITracker
             APITracker.log_api_call(
-                api_name='tavily',
+                api_name='brave',
                 endpoint='search',
                 query=query,
                 error=str(e)
@@ -75,7 +89,7 @@ class TavilySearchService:
     
     def daily_search(self, queries: List[str] = None) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Perform daily targeted searches for security, compliance, and GRC opportunities.
+        Perform daily targeted searches.
 
         Args:
             queries: List of search queries (uses default if not provided)
@@ -83,22 +97,20 @@ class TavilySearchService:
         Returns:
             Dictionary mapping queries to their results
         """
-        # Safety check: Ensure API searches are enabled
-        if not config.API_SEARCHES_ENABLED:
+        if not getattr(config, 'API_SEARCHES_ENABLED', True):
             print("⚠️  API searches are currently disabled. Skipping daily search.")
             return {}
 
         if queries is None:
-            queries = config.SEARCH_QUERIES
+            queries = getattr(config, 'SEARCH_QUERIES', [])
         
         all_results = {}
         
         for query in queries:
-            print(f"Searching: {query}")
+            print(f"Searching (Brave): {query}")
             results = self.search(query, max_results=10)
             all_results[query] = results
             
-            # Store raw results in database
             self._store_search_results(query, results)
         
         return all_results
@@ -107,7 +119,6 @@ class TavilySearchService:
         """Store search results in database."""
         with db_service.get_session() as session:
             for result in results:
-                # Check if result already exists by URL
                 existing = session.query(SearchResult).filter_by(
                     url=result.get("url")
                 ).first()
@@ -132,7 +143,6 @@ class TavilySearchService:
                 processed=False
             ).limit(limit).all()
             
-            # Detach from session
             session.expunge_all()
             return results
     

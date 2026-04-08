@@ -1,5 +1,6 @@
 """Processing service for analyzing search results and updating database."""
 
+import os
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any
 from sqlalchemy import desc
@@ -7,7 +8,13 @@ from ..models import Company, Opportunity, HiringSignal, SearchResult
 from ..models.graph import GraphDatabase
 from ..database import db_service
 from .tavily_service import TavilySearchService
+from .brave_service import BraveSearchService
 from .groq_service import GroqAnalysisService
+from .search_factory import get_search_service
+from ..config import config
+
+
+DEFAULT_BATCH_SIZE = int(os.getenv("PROCESS_BATCH_SIZE", "20"))
 
 
 class ProcessingService:
@@ -15,30 +22,65 @@ class ProcessingService:
     
     def __init__(self):
         """Initialize processing service."""
-        self.tavily = TavilySearchService()
+        # Prefer Tavily if configured, otherwise fallback to Brave
+        self.search_service = get_search_service()
         self.groq = GroqAnalysisService()
         self.graph = GraphDatabase()
     
-    def process_unprocessed_results(self, limit: int = 20):
-        """Process unprocessed search results."""
-        results = self.tavily.get_unprocessed_results(limit=limit)
+    def process_unprocessed_results(self, limit: int = 20, batch_size: int = None):
+        """Process unprocessed search results and return count processed.
+
+        Batch processing helps avoid long-running single loops and keeps memory use modest.
+        """
+        batch_size = batch_size or DEFAULT_BATCH_SIZE
+        results = self.search_service.get_unprocessed_results(limit=limit)
+        processed_count = 0
         
-        print(f"Processing {len(results)} unprocessed results...")
+        print(f"Processing {len(results)} unprocessed results in batches of {batch_size}...")
         
-        for result in results:
-            try:
-                self._process_single_result(result)
-                self.tavily.mark_as_processed(result.id)
-            except Exception as e:
-                print(f"Error processing result {result.id}: {e}")
+        for i in range(0, len(results), batch_size):
+            chunk = results[i:i + batch_size]
+            for result in chunk:
+                try:
+                    self._process_single_result(result)
+                    self.search_service.mark_as_processed(result.id)
+                    processed_count += 1
+                except Exception as e:
+                    print(f"Error processing result {result.id}: {e}")
+        
+        return processed_count
     
     def _process_single_result(self, result: SearchResult):
         """Process a single search result."""
         # Combine title and content for analysis
         text = f"{result.title}\n{result.content}"
         
-        # Extract entities
-        entities = self.groq.extract_entities(text)
+        try:
+            # Extract entities
+            entities = self.groq.extract_entities(text)
+            
+            # Store extraction results for transparency
+            keywords = entities.get("keywords", [])
+            
+            # Persist extraction details to the SearchResult row
+            with db_service.get_session() as session:
+                sr = session.query(SearchResult).get(result.id)
+                if sr:
+                    sr.extracted_company = entities.get("company_name")
+                    sr.extracted_job_title = entities.get("job_title")
+                    sr.extracted_role_type = entities.get("role_type")
+                    sr.extracted_location = entities.get("location")
+                    if keywords:
+                        import json
+                        sr.extracted_keywords = json.dumps(keywords)
+        except Exception as e:
+            # Persist error
+            with db_service.get_session() as session:
+                sr = session.query(SearchResult).get(result.id)
+                if sr:
+                    sr.processing_error = f"Extraction error: {str(e)}"
+            print(f"Error extracting entities from result {result.id}: {e}")
+            entities = {}
         
         company_name = entities.get("company_name")
         if not company_name:
@@ -47,86 +89,106 @@ class ProcessingService:
         
         # Get or create company
         with db_service.get_session() as session:
-            company = session.query(Company).filter_by(name=company_name).first()
+            try:
+                company = session.query(Company).filter_by(name=company_name).first()
             
-            if not company:
-                company = Company(
-                    name=company_name,
-                    industry=entities.get("industry"),
-                    location=entities.get("location"),
-                    description=result.content[:500] if result.content else None
-                )
-                session.add(company)
-                session.flush()
-                
-                # Add to graph database
-                self.graph.add_company(company.id, name=company_name)
-            
-            # Check if this is a job posting
-            job_title = entities.get("job_title")
-            if job_title:
-                # Check if an active opportunity with this title already exists
-                existing_opp = session.query(Opportunity).filter_by(
-                    company_id=company.id,
-                    title=job_title,
-                    is_active=True
-                ).first()
-                
-                if not existing_opp:
-                    opportunity = Opportunity(
-                        company_id=company.id,
-                        title=job_title,
-                        role_type=entities.get("role_type"),
-                        description=result.content,
-                        url=result.url,
+                if not company:
+                    company = Company(
+                        name=company_name,
+                        industry=entities.get("industry"),
                         location=entities.get("location"),
-                        is_active=True,
-                        discovered_date=datetime.now(timezone.utc)
+                        description=result.content[:500] if result.content else None
                     )
-                    session.add(opportunity)
+                    session.add(company)
                     session.flush()
                     
                     # Add to graph database
-                    self.graph.add_opportunity(
-                        opportunity.id,
-                        company.id,
-                        title=job_title,
-                        role_type=entities.get("role_type")
-                    )
-            
-            # Detect hiring signals
-            signals = self.groq.detect_hiring_signals(text, company_name)
-            
-            if signals.get("has_signal") and signals.get("confidence", 0) > 0.5:
-                # Check if signal already exists for this company, type, and source URL
-                existing_signal = session.query(HiringSignal).filter_by(
-                    company_id=company.id,
-                    signal_type=signals.get("signal_type"),
-                    source_url=result.url
-                ).first()
+                    self.graph.add_company(company.id, name=company_name)
                 
-                if not existing_signal:
-                    signal = HiringSignal(
+                # Check if this is a job posting
+                job_title = entities.get("job_title")
+                if job_title:
+                    # Check if an active opportunity with this title already exists
+                    existing_opp = session.query(Opportunity).filter_by(
+                        company_id=company.id,
+                        title=job_title,
+                        is_active=True
+                    ).first()
+                    
+                    if not existing_opp:
+                        opportunity = Opportunity(
+                            company_id=company.id,
+                            title=job_title,
+                            role_type=entities.get("role_type"),
+                            description=result.content,
+                            url=result.url,
+                            location=entities.get("location"),
+                            is_active=True,
+                            discovered_date=datetime.now(timezone.utc)
+                        )
+                        session.add(opportunity)
+                        session.flush()
+                        
+                        # Add to graph database
+                        self.graph.add_opportunity(
+                            opportunity.id,
+                            company.id,
+                            title=job_title,
+                            role_type=entities.get("role_type")
+                        )
+                
+                # Detect hiring signals
+                signals = self.groq.detect_hiring_signals(text, company_name)
+                
+                # Store signal results for transparency on SearchResult
+                sr = session.query(SearchResult).get(result.id)
+                if sr:
+                    sr.detected_signal = signals.get("has_signal", False)
+                    sr.signal_type = signals.get("signal_type")
+                    sr.signal_confidence = signals.get("confidence", 0.0)
+                    sr.signal_description = signals.get("description")
+                
+                if signals.get("has_signal") and signals.get("confidence", 0) > 0.5:
+                    # Check if signal already exists for this company, type, and source URL
+                    existing_signal = session.query(HiringSignal).filter_by(
                         company_id=company.id,
                         signal_type=signals.get("signal_type"),
-                        description=signals.get("description"),
-                        source_url=result.url,
-                        confidence=signals.get("confidence", 0.0),
-                        detected_date=datetime.now(timezone.utc)
-                    )
-                    session.add(signal)
-                    session.flush()
+                        source_url=result.url
+                    ).first()
                     
-                    # Add to graph database
-                    self.graph.add_signal(
-                        signal.id,
-                        company.id,
-                        signals.get("signal_type"),
-                        description=signals.get("description")
-                    )
+                    if not existing_signal:
+                        signal = HiringSignal(
+                            company_id=company.id,
+                            signal_type=signals.get("signal_type"),
+                            description=signals.get("description"),
+                            source_url=result.url,
+                            confidence=signals.get("confidence", 0.0),
+                            detected_date=datetime.now(timezone.utc)
+                        )
+                        session.add(signal)
+                        session.flush()
+                        
+                        # Add to graph database
+                        self.graph.add_signal(
+                            signal.id,
+                            company.id,
+                            signals.get("signal_type"),
+                            description=signals.get("description")
+                        )
+                
+                # Update company score
+                self._update_company_score(session, company.id)
             
-            # Update company score
-            self._update_company_score(session, company.id)
+                # Mark as processed successfully with timestamp
+                if sr:
+                    sr.processed = True
+                    sr.processed_date = datetime.now(timezone.utc)
+            except Exception as e:
+                # Persist generic processing error
+                sr = session.query(SearchResult).get(result.id)
+                if sr:
+                    sr.processing_error = str(e)
+                raise
     
     def _update_company_score(self, session, company_id: int):
         """Update company score based on opportunities and signals."""

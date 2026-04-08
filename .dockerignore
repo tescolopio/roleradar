@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+*.log
+.pytest_cache/
+
+# VCS
+.git
+.gitignore
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Python build
+build/
+dist/
+*.egg-info/
+
+# Docs & misc (not needed in image)
+docs/
+*.md
+LICENSE
+
+# Local env
+.env
+.venv/
+venv/

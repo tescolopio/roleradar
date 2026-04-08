@@ -13,9 +13,13 @@
                 <h1>🎯 RoleRadar</h1>
                 <p class="subtitle">Security, Compliance & GRC Opportunity Tracker</p>
             </div>
-            <div class="header-actions">
-                <a href="/admin" class="admin-link">⚙️ Admin Panel</a>
-            </div>
+            <nav class="main-nav">
+                <a href="/" class="nav-link active">📊 Dashboard</a>
+                <a href="/companies" class="nav-link">🏢 Companies</a>
+                <a href="/opportunities" class="nav-link">💼 Opportunities</a>
+                <a href="/relationships" class="nav-link">🔗 Relationships</a>
+                <a href="/admin" class="nav-link admin-link">⚙️ Admin</a>
+            </nav>
         </header>
 
         <div id="summary-section" class="section">
@@ -88,6 +92,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>

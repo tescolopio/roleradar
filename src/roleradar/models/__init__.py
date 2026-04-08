@@ -1,6 +1,6 @@
 """Initialize models package."""
 
-from .database import Base, Company, Opportunity, HiringSignal, SearchResult
+from .database import Base, Company, Opportunity, HiringSignal, SearchResult, ConfigurationSetting, APIUsageLog
 from .graph import GraphDatabase
 
 __all__ = [
@@ -9,5 +9,7 @@ __all__ = [
     "Opportunity",
     "HiringSignal",
     "SearchResult",
+    "ConfigurationSetting",
+    "APIUsageLog",
     "GraphDatabase",
 ]

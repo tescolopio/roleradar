@@ -3,13 +3,24 @@
 import networkx as nx
 import pickle
 import os
+from pathlib import Path
 
 
 class GraphDatabase:
     """Simple graph database using NetworkX for relationship tracking."""
-    
-    def __init__(self, filepath="roleradar_graph.pkl"):
-        """Initialize graph database."""
+
+    def __init__(self, filepath=None):
+        """Initialize graph database.
+
+        Args:
+            filepath: Path to graph pickle file. If not provided, uses shared /data directory.
+        """
+        if filepath is None:
+            # Use /data directory (shared between containers in Docker)
+            # Falls back to project root if /data doesn't exist
+            data_dir = Path("/data") if Path("/data").exists() else Path(__file__).parent.parent.parent.parent
+            filepath = str(data_dir / "roleradar_graph.pkl")
+
         self.filepath = filepath
         self.graph = nx.DiGraph()
         self.load()

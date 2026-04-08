@@ -74,10 +74,11 @@ def main():
     
     # Schedule all jobs
     schedule_jobs()
-    
-    # Run immediately on startup (optional - comment out if not desired)
-    print("Running initial job...")
-    run_daily_job()
+
+    # NOTE: Disabled automatic startup search to prevent excessive API calls
+    # If you want to run an initial search on startup, manually run: python roleradar.py search
+    # print("Running initial job...")
+    # run_daily_job()
     
     print("Press Ctrl+C to stop the scheduler\n")
     display_next_runs()

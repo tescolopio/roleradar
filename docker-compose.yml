@@ -1,0 +1,46 @@
+services:
+  web:
+    build: .
+    image: roleradar:web
+    container_name: roleradar_web
+    environment:
+      # Expose these via .env or your CI/CD secrets
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      # Use a persistent SQLite DB file in /data
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/roleradar.db}
+      # Shared SQLite fallback path if Postgres is unavailable
+      - SQLITE_FALLBACK_URL=${SQLITE_FALLBACK_URL:-sqlite:////data/roleradar.db}
+      - TIMEZONE=${TIMEZONE:-America/New_York}
+      - ROLERADAR_WEB_MODE=1
+      # Batch size for processing results, and maximum input chars for Groq prompts
+      - PROCESS_BATCH_SIZE=${PROCESS_BATCH_SIZE:-20}
+      - GROQ_MAX_INPUT_CHARS=${GROQ_MAX_INPUT_CHARS:-4000}
+    ports:
+      - "${HOST_PORT:-9000}:8000"
+    volumes:
+      - roleradar_data:/data
+    restart: unless-stopped
+
+  scheduler:
+    image: roleradar:web
+    container_name: roleradar_scheduler
+    depends_on:
+      - web
+    environment:
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/roleradar.db}
+      - SQLITE_FALLBACK_URL=${SQLITE_FALLBACK_URL:-sqlite:////data/roleradar.db}
+      - TIMEZONE=${TIMEZONE:-America/New_York}
+      - ROLERADAR_WEB_MODE=1
+      - PROCESS_BATCH_SIZE=${PROCESS_BATCH_SIZE:-20}
+      - GROQ_MAX_INPUT_CHARS=${GROQ_MAX_INPUT_CHARS:-4000}
+    command: ["python", "-u", "scheduler.py"]
+    volumes:
+      - roleradar_data:/data
+    restart: unless-stopped
+
+volumes:
+  roleradar_data:
+    driver: local

@@ -29,11 +29,17 @@
                 <a href="#prompts" class="nav-item" data-section="prompts">
                     💬 Prompts
                 </a>
+                <a href="#results" class="nav-item" data-section="results">
+                    🔍 Search Results
+                </a>
                 <a href="#weights" class="nav-item" data-section="weights">
                     ⚖️ Weights
                 </a>
                 <a href="#system" class="nav-item" data-section="system">
                     🔧 System
+                </a>
+                <a href="#data-management" class="nav-item" data-section="data-management">
+                    🗑️ Data Management
                 </a>
                 <a href="/" class="nav-item nav-exit">
                     ← Back to Dashboard
@@ -59,13 +65,23 @@
                     <p class="description">Configure your API keys and database credentials. All sensitive information is encrypted and stored securely.</p>
                     
                     <div class="control-group">
-                        <label>Tavily API Key</label>
+                        <label>Tavily API Key (Primary Search)</label>
                         <p class="description">Get your API key from https://tavily.com</p>
                         <div class="input-group">
                             <input type="password" id="tavily-key" placeholder="Enter your Tavily API key" class="credential-input">
                             <button id="btn-show-tavily" class="btn btn-small">👁 Show</button>
                         </div>
                         <div id="tavily-status" class="credential-status"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Brave Search API Key (Alternative Search)</label>
+                        <p class="description">Get your API key from https://search.brave.com</p>
+                        <div class="input-group">
+                            <input type="password" id="brave-key" placeholder="Enter your Brave API key" class="credential-input">
+                            <button id="btn-show-brave" class="btn btn-small">👁 Show</button>
+                        </div>
+                        <div id="brave-status" class="credential-status"></div>
                     </div>
 
                     <div class="control-group">
@@ -105,6 +121,10 @@
                         <div class="status-card">
                             <div class="status-card-label">Tavily</div>
                             <div id="tavily-check" class="status-card-value">⚠️ Not Set</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-card-label">Brave</div>
+                            <div id="brave-check" class="status-card-value">⚠️ Not Set</div>
                         </div>
                         <div class="status-card">
                             <div class="status-card-label">Groq</div>
@@ -337,6 +357,42 @@
                 </div>
             </section>
 
+            <!-- Search Results Transparency Section -->
+            <section id="results" class="admin-section">
+                <div class="section-content">
+                    <h2>🔍 Search Results & AI Extractions</h2>
+                    <p class="description">View raw search results and see exactly what the AI extracted from each result. This transparency helps you understand and trust the system.</p>
+                    
+                    <div class="control-group">
+                        <label>Filter Results</label>
+                        <div class="input-group">
+                            <input type="text" id="results-filter" placeholder="Filter by query...">
+                            <button id="btn-refresh-results" class="btn btn-secondary">🔄 Refresh</button>
+                        </div>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="show-processed-only">
+                                Show only processed results
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="results-container" class="results-container">
+                        <div class="loading">Loading search results...</div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>💡 Understanding the Data</strong>
+                        <ul>
+                            <li><strong>Extraction:</strong> Shows what the AI identified (company, job title, location, etc.)</li>
+                            <li><strong>Signals:</strong> Shows detected hiring indicators (funding, expansion, etc.)</li>
+                            <li><strong>Confidence:</strong> How confident the AI is in its analysis (0-1 scale)</li>
+                            <li><strong>Errors:</strong> Any issues encountered during processing</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
             <!-- System Section -->
             <section id="system" class="admin-section">
                 <div class="section-content">
@@ -371,9 +427,53 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Data Management Section -->
+            <section id="data-management" class="admin-section">
+                <div class="section-content">
+                    <h2>🗑️ Data Management</h2>
+                    <p class="description">Clean up and manage your database. Use these tools to remove demo data or start fresh.</p>
+
+                    <div class="control-group">
+                        <h3>Database Statistics</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-companies">-</div>
+                                <div class="stat-label">Companies</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-opportunities">-</div>
+                                <div class="stat-label">Opportunities</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-signals">-</div>
+                                <div class="stat-label">Hiring Signals</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>Clear All Data</h3>
+                        <p class="description warning">⚠️ This will delete ALL companies, opportunities, signals, and search results. This action cannot be undone.</p>
+                        <button id="btn-clear-all" class="btn btn-danger">🗑️ Clear All Data</button>
+                        <div id="clear-status" class="status-box"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>Delete Specific Company</h3>
+                        <div class="input-group">
+                            <select id="company-select" class="full-width">
+                                <option value="">-- Select a company --</option>
+                            </select>
+                            <button id="btn-delete-company" class="btn btn-secondary" disabled>🗑️ Delete</button>
+                        </div>
+                        <div id="delete-company-status" class="status-box"></div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/admin.js') }}"></script>
 </body>
 </html>

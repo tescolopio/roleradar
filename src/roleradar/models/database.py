@@ -1,7 +1,7 @@
 """Database models for RoleRadar."""
 
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -95,6 +95,79 @@ class SearchResult(Base):
     published_date = Column(String(100))
     retrieved_date = Column(DateTime, default=utc_now)
     processed = Column(Boolean, default=False)
+    processed_date = Column(DateTime)
+    
+    # Extraction tracking - shows what AI extracted
+    extracted_company = Column(String(255))
+    extracted_job_title = Column(String(255))
+    extracted_role_type = Column(String(100))
+    extracted_location = Column(String(255))
+    extracted_keywords = Column(Text)  # JSON array as string
+    
+    # Signal tracking - shows what hiring signals were detected
+    detected_signal = Column(Boolean, default=False)
+    signal_type = Column(String(100))
+    signal_confidence = Column(Float)
+    signal_description = Column(Text)
+    
+    # Error tracking - shows any processing issues
+    processing_error = Column(Text)
     
     def __repr__(self):
         return f"<SearchResult(title='{self.title}', query='{self.query}')>"
+
+
+class UserOpportunityTracking(Base):
+    """User tracking for opportunities."""
+    __tablename__ = 'user_opportunity_tracking'
+
+    id = Column(Integer, primary_key=True)
+    opportunity_id = Column(Integer, ForeignKey('opportunities.id', ondelete='CASCADE'), nullable=False)
+    status = Column(String(50), default='interested')
+    notes = Column(Text)
+    favorite = Column(Boolean, default=False)
+    applied_date = Column(DateTime(timezone=True))
+    last_updated = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    # Relationship
+    opportunity = relationship('Opportunity', backref='tracking')
+
+    def __repr__(self):
+        return f"<UserOpportunityTracking(opportunity_id={self.opportunity_id}, status='{self.status}')>"
+
+
+class ConfigurationSetting(Base):
+    """Persistent configuration settings storage."""
+    __tablename__ = 'configuration_settings'
+
+    id = Column(Integer, primary_key=True)
+    key = Column(String(255), nullable=False, unique=True, index=True)
+    value = Column(Text, nullable=False)  # JSON encoded value
+    description = Column(Text)
+    last_updated = Column(DateTime, default=utc_now, onupdate=utc_now)
+    created_at = Column(DateTime, default=utc_now)
+
+    def __repr__(self):
+        return f"<ConfigurationSetting(key='{self.key}')>"
+
+
+class APIUsageLog(Base):
+    """Track API usage for monitoring and quota management."""
+    __tablename__ = 'api_usage_logs'
+
+    id = Column(Integer, primary_key=True)
+    api_name = Column(String(50), nullable=False, index=True)  # 'tavily', 'groq'
+    endpoint = Column(String(255))  # e.g., 'search', 'extract_entities'
+    request_count = Column(Integer, default=1, nullable=False)
+    date = Column(Date, nullable=False, index=True)
+    hour = Column(Integer)  # 0-23 for hourly tracking
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    # Usage metadata
+    query = Column(Text)  # The search query or prompt (first 500 chars)
+    result_count = Column(Integer)  # Number of results returned
+    error = Column(Text)  # Error message if failed
+
+    def __repr__(self):
+        return f"<APIUsageLog({self.api_name}, {self.date}, count={self.request_count})>"

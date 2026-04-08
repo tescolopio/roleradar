@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opportunities - RoleRadar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-main">
+                <h1>🎯 RoleRadar</h1>
+                <p class="subtitle">Security, Compliance & GRC Opportunity Tracker</p>
+            </div>
+            <nav class="main-nav">
+                <a href="/" class="nav-link">📊 Dashboard</a>
+                <a href="/companies" class="nav-link">🏢 Companies</a>
+                <a href="/opportunities" class="nav-link active">💼 Opportunities</a>
+                <a href="/relationships" class="nav-link">🔗 Relationships</a>
+                <a href="/admin" class="nav-link admin-link">⚙️ Admin</a>
+            </nav>
+        </header>
+
+        <div id="opportunities-section" class="section">
+            <h2>💼 All Job Opportunities</h2>
+            <p class="description">Active security, compliance, and GRC positions discovered through automated searches.</p>
+
+            <div class="table-container">
+                <table id="opportunities-table">
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Company</th>
+                            <th>Company Score</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Discovered</th>
+                            <th>Apply</th>
+                        </tr>
+                    </thead>
+                    <tbody id="opportunities-tbody">
+                        <tr>
+                            <td colspan="7">Loading opportunities...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="{{ url_for('static', filename='js/opportunities.js') }}"></script>
+</body>
+</html>
